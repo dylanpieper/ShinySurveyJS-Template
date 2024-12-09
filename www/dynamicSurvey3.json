@@ -5,7 +5,8 @@
     {
       "type": "text",
       "name": "name",
-      "title": "What is your name?"
+      "title": "What is your name?",
+      "isRequired": true
     },
     {
       "type": "dropdown",

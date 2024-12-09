@@ -29,15 +29,14 @@ There are a couple amazing Shiny-based survey tools like [surveydown](https://gi
 git clone https://github.com/dylanpieper/ShinySurveyJS.git
 ```
 
-2.  Create a `db.yml` file, modifying the following template with your database credentials. In Supabase, navigate to the project sidebar navigation pane ➡️ project settings ➡️ configuration: database ➡️ database settings: connection parameters.
+2.  Create a `.env` file, modifying the following template with your database credentials. In Supabase, navigate to the project sidebar navigation pane ➡️ project settings ➡️ configuration: database ➡️ database settings: connection parameters.
 
-``` yaml
-db:
-  host: "host"
-  port: 1234
-  dbname: "dbname"
-  user: "user"
-  password: "password"
+``` env
+DB_HOST=aws-0-us-west-1.pooler.supabase.com
+DB_PORT=6543
+DB_NAME=postgres
+DB_USER=username
+DB_PASSWORD=password
 ```
 
 3.  Install the required R packages:
@@ -52,12 +51,12 @@ pak::pkg_install(c("shiny", "jsonlite", "shinyjs", "httr", "DBI", "RPostgres", "
 1.  Create the table `entities` in your database to explore the example surveys and dynamic fields functionality. You can execute the following queries to create the table and insert the sample data.
 
 ``` sql
-CREATE TABLE entities (
-    entity TEXT,
+CREATE TABLE organization_location (
+    organization TEXT,
     location TEXT
 );
 
-INSERT INTO entities (entity, location) 
+INSERT INTO organization_location (organization, location) 
 VALUES 
     ('Google', 'San Francisco, CA'),
     ('Google', 'Boulder, CO'),
@@ -66,53 +65,43 @@ VALUES
     ('Anthropic', 'Seattle, WA'),
     ('Anthropic', 'New York City, NY');
     
-CREATE TABLE doctors (
+CREATE TABLE doctor_clinic (
    doctor TEXT,
    clinic TEXT
 );
-
-INSERT INTO doctors (doctor, clinic) VALUES
-   ('DrSarahChen', 'Downtown Medical'),
-   ('DrSarahChen', 'Westside Health'),
-   ('DrJamesWilson', 'Downtown Medical'),
-   ('DrJamesWilson', 'Eastside Clinic'),
-   ('DrMariaGarcia', 'Westside Health'),
-   ('DrMariaGarcia', 'Eastside Clinic');
+   
+INSERT INTO doctor_clinic (doctor, clinic) VALUES
+   ('SarahChen', 'Downtown Medical'),
+   ('SarahChen', 'Westside Health'),
+   ('JamesWilson', 'Downtown Medical'),
+   ('JamesWilson', 'Eastside Clinic'),
+   ('MariaGarcia', 'Westside Health'),
+   ('MariaGarcia', 'Eastside Clinic');
 ```
 
 2.  Optionally, create and manage your own dynamic fields table by adding your table and mapping your fields to the `dynamic_fields.yml` file. The `group_col` is the column that will be used to filter the dynamic fields, which is assigned a token and used in the URL query parameter. The `choices_col` is the column that will be used to locate the field name and populate the survey choices. The `surveys` field is a list of survey names that the dynamic field applies to.
 
-``` yaml
-fields:
-  - table_name: "entities"
-    group_col: "entity"
-    choices_col: "location"
-    surveys: ["dynamicSurvey1", "dynamicSurvey2"]
-```
+Because the app uses URL queries, don't use spaces and special characters for the `group_col`.
 
 ## Run Survey App
 
-1.  In `app.R`, run the following line once to create the necessary tables and generate the tokens for all survey objects and dynamic field groups:
-
-``` r
-setup_database("initial")
-```
-
-2.  Run the app:
+1.  Run the app:
 
 ``` r
 runApp()
 ```
 
-3.  Access survey with URL query parameters:
+If the `tokens` table does not exist yet, the app will automatically create it. The app will also generate tokens for each survey and store them in the database.
+
+Tokenization is used by default. Using tokens requires an additional table read, making it a slightly slower process, which may not be necessary for your use case. Tokens are generated as a background task of the app using parallelization. If new tokens are created, users can access them on the next page load after the process runs. You can customize the tokenization algorithm in `shiny/token.R`.
+
+2.  Access survey with URL query parameters:
     -   Generic:
         -   Without tokens (same as JSON file name): `/?survey=name`
         -   With tokens: `/?survey=token`
     -   Examples with dynamic fields:
-        -   Without tokens (`token_active <- FALSE`): `/?survey=dynamicSurvey&entity=Google`
+        -   Without tokens (`token_active <- FALSE`): `/?survey=DynamicPersonID&entity=MariaGarcia`
         -   With tokens (`token_active <- TRUE`): `/?survey=LimeMeteorSevenHundredThirtyTwo&entity=FiveHundredSeventyFourGalaxyBrown`
-
-Tokenization is used by default. Using tokens requires an additional table read, making it a slightly slower process, which may not be necessary for your use case. Tokens are generated as a background task of the app using parallelization. If new tokens are created, users can access them on the next page load after the process runs. You can customize the tokenization algorithm in `shiny/token.R`.
 
 ## Use Any Database
 

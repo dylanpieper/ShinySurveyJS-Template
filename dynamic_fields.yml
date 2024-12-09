@@ -1,24 +1,24 @@
 fields:
-  - table_name: "entities"
-    group_col: "entity"
+  - table_name: "organization_location"
+    group_col: "organization"
     select_group: false
-    surveys: ["dynamicSurvey1"]
-  - table_name: "entities"
-    group_col: "entity"
+    surveys: ["DynamicSurvey1"]
+  - table_name: "organization_location"
+    group_col: "organization"
     select_group: true
-    surveys: ["dynamicSurvey2"]
-  - table_name: "entities"
-    group_col: "entity"
+    surveys: ["DynamicSurvey2"]
+  - table_name: "organization_location"
+    group_col: "organization"
     select_group: false
     choices_col: "location"
-    surveys: ["dynamicSurvey3"]
-  - table_name: "entities"
-    group_col: "entity"
+    surveys: ["DynamicSurvey3"]
+  - table_name: "organization_location"
+    group_col: "organization"
     select_group: true
     choices_col: "location"
-    surveys: ["dynamicSurvey4"]
-  - table_name: "doctors"
+    surveys: ["DynamicSurvey4"]
+  - table_name: "doctor_clinic"
     group_col: "doctor"
     select_group: false
     choices_col: "clinic"
-    surveys: ["dynamicPersonID"]
+    surveys: ["DynamicPersonID"]

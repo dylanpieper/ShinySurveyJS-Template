@@ -5,11 +5,12 @@
     {
       "type": "text",
       "name": "name",
-      "title": "What is your name?"
+      "title": "What is your name?",
+      "isRequired": true
     },
     {
       "type": "radiogroup",
-      "name": "entity",
+      "name": "organization",
       "title": "Select your organization:",
       "choices": [],
       "isRequired": true
@@ -20,7 +21,7 @@
       "title": "Select your location:",
       "choices": [],
       "isRequired": true,
-      "visibleIf": "{entity} notempty"
+      "visibleIf": "{organization} notempty"
     }
   ]
 }
