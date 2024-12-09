@@ -1,0 +1,11 @@
+{
+  "title": "Dynamic Survey (1)",
+  "description": "Case: Assign group in URL query parameter, no selections for group or additional choices",
+  "elements": [
+    {
+      "type": "text",
+      "name": "name",
+      "title": "What is your name?"
+    }
+  ]
+}

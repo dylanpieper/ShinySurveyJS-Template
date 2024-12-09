@@ -1,0 +1,35 @@
+{
+  "title": "Static Survey",
+  "pages": [
+    {
+      "name": "page1",
+      "elements": [
+        {
+          "type": "radiogroup",
+          "name": "productQuality",
+          "title": "What is your opinion on the quality of our product?",
+          "choices": ["Excellent", "Good", "Fair", "Poor"]
+        },
+        {
+          "type": "comment",
+          "name": "suggestions",
+          "title": "What would make our product better?"
+        },
+        {
+          "type": "rating",
+          "name": "productSatisfaction",
+          "title": "How satisfied are you with the product?",
+          "rateMin": 0,
+          "rateMax": 5,
+          "rateStep": 1
+        },
+        {
+          "type": "dropdown",
+          "name": "recommendProduct",
+          "title": "Would you recommend our product to your friends?",
+          "choices": ["Definitely", "Maybe", "Not sure", "Never"]
+        }
+      ]
+    }
+  ]
+}

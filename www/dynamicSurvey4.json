@@ -1,0 +1,26 @@
+{
+  "title": "Dynamic Survey (4)",
+  "description": "Case: Select group, select from additional choices",
+  "elements": [
+    {
+      "type": "text",
+      "name": "name",
+      "title": "What is your name?"
+    },
+    {
+      "type": "radiogroup",
+      "name": "entity",
+      "title": "Select your organization:",
+      "choices": [],
+      "isRequired": true
+    },
+    {
+      "type": "dropdown",
+      "name": "location",
+      "title": "Select your location:",
+      "choices": [],
+      "isRequired": true,
+      "visibleIf": "{entity} notempty"
+    }
+  ]
+}

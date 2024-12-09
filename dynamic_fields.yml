@@ -1,0 +1,24 @@
+fields:
+  - table_name: "entities"
+    group_col: "entity"
+    select_group: false
+    surveys: ["dynamicSurvey1"]
+  - table_name: "entities"
+    group_col: "entity"
+    select_group: true
+    surveys: ["dynamicSurvey2"]
+  - table_name: "entities"
+    group_col: "entity"
+    select_group: false
+    choices_col: "location"
+    surveys: ["dynamicSurvey3"]
+  - table_name: "entities"
+    group_col: "entity"
+    select_group: true
+    choices_col: "location"
+    surveys: ["dynamicSurvey4"]
+  - table_name: "doctors"
+    group_col: "doctor"
+    select_group: false
+    choices_col: "clinic"
+    surveys: ["dynamicPersonID"]

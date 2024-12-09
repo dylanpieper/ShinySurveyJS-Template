@@ -1,0 +1,18 @@
+{
+  "title": "Dyanmic Survey (3)",
+  "description": "Case: Assign group in URL query parameter, select from additional choices",
+  "elements": [
+    {
+      "type": "text",
+      "name": "name",
+      "title": "What is your name?"
+    },
+    {
+      "type": "dropdown",
+      "name": "location",
+      "title": "Select your location:",
+      "choices": [],
+      "isRequired": true
+    }
+  ]
+}

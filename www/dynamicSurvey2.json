@@ -1,0 +1,18 @@
+{
+  "title": "Dynamic Survey (2)",
+  "description": "Case: Select group, no additional choices",
+  "elements": [
+    {
+      "type": "text",
+      "name": "name",
+      "title": "What is your name?"
+    },
+    {
+      "type": "dropdown",
+      "name": "entity",
+      "title": "Select your organization:",
+      "choices": [],
+      "isRequired": true
+    }
+  ]
+}
