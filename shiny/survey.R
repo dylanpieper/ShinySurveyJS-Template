@@ -23,14 +23,14 @@ surveyServer <- function(input = NULL,
                          session = NULL, 
                          token_active = NULL, 
                          token_table = NULL,
-                         pool = NULL,
+                         db_ops = NULL,
                          session_id = NULL) {
   
   # Initialize reactive values for state management
   survey_data <- reactiveVal(NULL)         # Stores the final survey response data
   group_lookup <- reactiveVal(NULL)        # Stores group lookup values for token resolution
   group_value <- reactiveVal(NULL)         # Stores the actual group value (not token)
-  current_field_config <- reactiveVal(NULL)# Stores current field configuration
+  current_field_config <- reactiveVal(NULL) # Stores current field configuration
   survey_config <- reactiveVal(NULL)       # Stores survey configuration details
   config_cache <- reactiveVal(NULL)        # Caches the configuration file
   table_cache <- reactiveValues()          # Caches table data for performance
@@ -39,7 +39,7 @@ surveyServer <- function(input = NULL,
   # Helper function to safely retrieve and cache table data
   get_table_data <- function(table_name) {
     if (is.null(table_cache[[table_name]])) {
-      table_cache[[table_name]] <- read_table(pool, table_name, session_id)
+      table_cache[[table_name]] <- db_ops$read_table(table_name)  # Updated to use db_ops method
     }
     return(table_cache[[table_name]])
   }
@@ -201,7 +201,7 @@ surveyServer <- function(input = NULL,
     })
   })
   
-  # Handle dynamic choice updates based on user selection
+  # Handler for dynamic choice updates remains the same
   observeEvent(input$selectedChoice, {
     req(config_cache())
     
@@ -210,7 +210,6 @@ surveyServer <- function(input = NULL,
       field_name <- input$selectedChoice$fieldName
       selected_group <- input$selectedChoice$selected
       
-      # Find and process relevant field configuration
       for (field_config in config$fields) {
         if (any(names(field_config) == "choices_col") && 
             field_config$select_group && 
@@ -220,7 +219,6 @@ surveyServer <- function(input = NULL,
           table_name <- field_config$table_name
           table_data <- get_table_data(table_name)
           
-          # Update choices based on selected group
           if (length(selected_group) > 0 && selected_group %in% table_data[[field_config$group_col]]) {
             choices_col <- field_config$choices_col
             filtered_data <- table_data[table_data[[field_config$group_col]] == selected_group, ]
@@ -241,21 +239,17 @@ surveyServer <- function(input = NULL,
     }
   })
   
-  # Handle survey data submission
+  # Survey data submission handler remains the same
   observeEvent(input$surveyData, {
-    # Parse submitted survey data
     data <- fromJSON(input$surveyData)
     
-    # Add group information if available
     field_config <- current_field_config()
     if (!is.null(field_config) && !is.null(field_config$group_col)) {
-      # Use actual group value instead of token
       if (!is.null(group_value())) {
         data[[field_config$group_col]] <- group_value()
       }
     }
     
-    # Update survey data and render table
     survey_data(data)
     output$surveyData <- renderTable({
       req(survey_data())
@@ -263,6 +257,5 @@ surveyServer <- function(input = NULL,
     })
   })
   
-  # Return the survey data reactive value
   return(survey_data)
 }
