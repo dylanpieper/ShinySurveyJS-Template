@@ -48,37 +48,11 @@ pak::pkg_install(c("shiny", "jsonlite", "shinyjs", "httr", "DBI", "RPostgres", "
 
 ## Setup Dynamic Fields
 
-1.  Create the table `entities` in your database to explore the example surveys and dynamic fields functionality. You can execute the following queries to create the table and insert the sample data.
+1.  Create the table `entities` in your database to explore the example surveys and dynamic fields functionality. You can run the queries in `setup_example.sql` to create the setup tables and insert the example data.
 
-``` sql
-CREATE TABLE organization_location (
-    organization TEXT,
-    location TEXT
-);
-
-INSERT INTO organization_location (organization, location) 
-VALUES 
-    ('Google', 'San Francisco, CA'),
-    ('Google', 'Boulder, CO'),
-    ('Google', 'Chicago, IL'),
-    ('Anthropic', 'San Francisco, CA'),
-    ('Anthropic', 'Seattle, WA'),
-    ('Anthropic', 'New York City, NY');
-    
-CREATE TABLE doctor_clinic (
-   doctor TEXT,
-   clinic TEXT
-);
-   
-INSERT INTO doctor_clinic (doctor, clinic) VALUES
-   ('SarahChen', 'Downtown Medical'),
-   ('SarahChen', 'Westside Health'),
-   ('JamesWilson', 'Downtown Medical'),
-   ('JamesWilson', 'Eastside Clinic'),
-   ('MariaGarcia', 'Westside Health'),
-   ('MariaGarcia', 'Eastside Clinic');
+```{=html}
+<!-- -->
 ```
-
 2.  Optionally, create and manage your own dynamic fields table by adding your table and mapping your fields to the `dynamic_fields.yml` file. The `group_col` is the column that will be used to filter the dynamic fields, which is assigned a token and used in the URL query parameter. The `choices_col` is the column that will be used to locate the field name and populate the survey choices. The `surveys` field is a list of survey names that the dynamic field applies to.
 
 Because the app uses URL queries, don't use spaces and special characters for the `group_col`.

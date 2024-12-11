@@ -1,10 +1,8 @@
-# Define the survey UI
+# UI ----
 surveyUI <- function(id = NULL, theme = "defaultV2") {
-  
   css_file <- switch(theme,
                      "defaultV2" = paste0("https://unpkg.com/survey-core/defaultV2.fontless.css"),
-                     "modern" = paste0("https://unpkg.com/survey-core/modern.css")
-  )
+                     "modern" = paste0("https://unpkg.com/survey-core/modern.css"))
   
   tagList(
     tags$head(
@@ -17,7 +15,7 @@ surveyUI <- function(id = NULL, theme = "defaultV2") {
   )
 }
 
-# Define the server function for handling survey data and dynamic field configurations
+# Server ----
 surveyServer <- function(input = NULL, 
                          output = NULL, 
                          session = NULL, 
@@ -27,235 +25,280 @@ surveyServer <- function(input = NULL,
                          session_id = NULL) {
   
   # Initialize reactive values for state management
-  survey_data <- reactiveVal(NULL)         # Stores the final survey response data
-  group_lookup <- reactiveVal(NULL)        # Stores group lookup values for token resolution
-  group_value <- reactiveVal(NULL)         # Stores the actual group value (not token)
-  current_field_config <- reactiveVal(NULL) # Stores current field configuration
-  survey_config <- reactiveVal(NULL)       # Stores survey configuration details
-  config_cache <- reactiveVal(NULL)        # Caches the configuration file
-  table_cache <- reactiveValues()          # Caches table data for performance
-  field_updates <- reactiveVal(new.env())  # Stores field update events
+  rv <- reactiveValues(
+    survey_data = NULL,          # Final survey response data
+    survey_config = NULL,        # Survey configuration from database
+    dynamic_config = NULL,       # Parsed config_json for dynamic fields
+    group_value = NULL,          # Current group value
+    table_cache = new.env(),     # Cache for database tables
+    token_data = NULL            # Store token data
+  )
   
-  # Helper function to safely retrieve and cache table data
-  get_table_data <- function(table_name) {
-    if (is.null(table_cache[[table_name]])) {
-      table_cache[[table_name]] <- db_ops$read_table(table_name)  # Updated to use db_ops method
+  # Observe token table changes
+  observe({
+    if (is.function(token_table)) {
+      rv$token_data <- token_table()
+    } else {
+      rv$token_data <- token_table
     }
-    return(table_cache[[table_name]])
+  })
+  
+  # Helper function to safely get and cache table data
+  get_cached_table <- function(table_name) {
+    if (!exists(table_name, envir = rv$table_cache)) {
+      table_data <- tryCatch({
+        db_ops$read_table(table_name)
+      }, error = function(e) {
+        warning(sprintf("[Session %s] Error reading table %s: %s", 
+                        session_id, table_name, e$message))
+        NULL
+      })
+      if (!is.null(table_data)) {
+        assign(table_name, table_data, envir = rv$table_cache)
+      }
+    }
+    get(table_name, envir = rv$table_cache)
   }
   
-  # Load and cache configuration file on initialization
-  observe({
-    if (is.null(config_cache())) {
-      config_cache(read_yaml("dynamic_fields.yml"))
+  # Helper function to update survey choices
+  update_survey_choices <- function(question_name, choices) {
+    if (!is.null(choices) && length(choices) > 0) {
+      session$sendCustomMessage(
+        "updateChoices",
+        list(
+          "targetQuestion" = question_name,
+          "choices" = as.list(unique(choices))
+        )
+      )
     }
-  }, priority = 1000)
+  }
   
-  # Handle initial survey setup and JSON loading
+  # Helper function to resolve token to object
+  resolve_token <- function(token) {
+    if (!token_active || is.null(token)) {
+      warning(sprintf("[Session %s] Token resolution skipped - token_active: %s, token: %s", 
+                      session_id, token_active, token))
+      return(token)
+    }
+    
+    token_df <- rv$token_data
+    if (is.null(token_df)) {
+      warning(sprintf("[Session %s] Token table is NULL - Check token_table parameter", session_id))
+      return(token)
+    }
+    
+    if (!("token" %in% names(token_df) && "object" %in% names(token_df))) {
+      warning(sprintf("[Session %s] Token table missing required columns. Available columns: %s", 
+                      session_id, paste(names(token_df), collapse=", ")))
+      return(token)
+    }
+    
+    matching_rows <- token_df[token_df$token == token, "object"]
+    if (length(matching_rows) > 0) {
+      return(matching_rows[1])
+    }
+    
+    warning(sprintf("[Session %s] Token not found: %s", 
+                    session_id, token))
+    return(token)
+  }
+  
+  # Helper function to handle group value resolution and storage
+  handle_group_value <- function(group_param) {
+    if (!is.null(group_param)) {
+      group_val <- resolve_token(group_param)
+      if (length(group_val) > 0) {
+        rv$group_value <- group_val
+        return(group_val)
+      }
+    }
+    warning(sprintf("[Session %s] No valid group value found for parameter: %s", 
+                    session_id, group_param))
+    return(NULL)
+  }
+  
+  # Initialize survey on startup
   observe({
-    # Extract survey parameter from URL query
     query <- parseQueryString(session$clientData$url_search)
-    survey <- query$survey
+    survey_param <- query$survey
     
-    if (is.null(survey)) {
-      warning(sprintf("[Session %s] No survey parameter in query", session_id))
+    if (is.null(survey_param)) {
+      warning(sprintf("[Session %s] No survey parameter in query: %s", 
+                      session_id, paste(names(query), collapse=", ")))
       return()
     }
     
-    # Resolve survey identifier based on token status
-    survey_identifier <- if (token_active) {
-      token_table[token_table$token == survey, "object"]
-    } else {
-      survey
-    }
+    # Debug log for survey parameter
+    message(sprintf("[Session %s] Processing survey parameter: %s", session_id, survey_param))
     
-    # Validate token resolution
-    if (token_active && length(survey_identifier) == 0) {
-      warning(sprintf("[Session %s] Survey lookup returned no results", session_id))
+    # Resolve survey name from token if needed
+    survey_name <- resolve_token(survey_param)
+    
+    if (length(survey_name) == 0) {
+      warning(sprintf("[Session %s] Invalid survey token: %s", session_id, survey_param))
       return()
     }
     
-    # Load and validate survey JSON configuration
-    survey_json_path <- file.path("www", paste0(survey_identifier, ".json"))
-    if (!file.exists(survey_json_path)) {
-      warning(sprintf("[Session %s] Survey JSON file not found: %s", session_id, survey_json_path))
+    # Debug log for database operation
+    message(sprintf("[Session %s] Querying database for survey: %s", session_id, survey_name))
+    
+    # Query survey configuration from database with detailed error tracking
+    survey_record <- tryCatch({
+      
+      result <- db_ops$read_table("surveys") |> as.data.frame() |> dplyr::filter(survey_name == !!survey_name)
+      
+      # Debug log for query result
+      message(sprintf("[Session %s] Total Surveys: %s rows", 
+                      session_id, if(is.null(result)) "NULL" else nrow(result)))
+      
+      result
+    }, error = function(e) {
+      warning(sprintf("[Session %s] Error querying 'surveys' table: %s\nStack trace:\n%s", 
+                      session_id, e$message, paste(sys.calls(), collapse = "\n")))
+      return(NULL)
+    })
+    
+    if (is.null(survey_record)) {
+      warning(sprintf("[Session %s] Survey record is NULL for survey: %s", 
+                      session_id, survey_name))
+    }
+    
+    if (nrow(survey_record) == 0) {
+      warning(sprintf("[Session %s] Survey not found in database: %s", 
+                      session_id, survey_name))
+      hide_and_show_message("waitingMessage", "surveyNotFoundMessage")
       return()
     }
     
-    # Load survey JSON and send to client
-    survey_json <- fromJSON(survey_json_path, simplifyVector = FALSE)
-    session$sendCustomMessage("loadSurvey", survey_json)
+    # Store survey configuration and JSON
+    rv$survey_config <- survey_record
     
-    # Store survey configuration
-    survey_config(list(
-      survey = survey,
-      survey_identifier = survey_identifier,
-      query = query
-    ))
+    # Parse config_json if present with detailed error handling
+    if (!is.null(survey_record$config_json)) {
+      tryCatch({
+        message(sprintf("[Session %s] Parsing config_json for survey: %s", 
+                        session_id, survey_name))
+        rv$dynamic_config <- jsonlite::fromJSON(survey_record$config_json)
+      }, error = function(e) {
+        warning(sprintf("[Session %s] Error parsing config_json: %s\nConfig JSON content: %s", 
+                        session_id, e$message, survey_record$config_json))
+      })
+    }
+    
+    # Load and send survey JSON to client with enhanced error handling
+    tryCatch({
+      message(sprintf("[Session %s] Loading survey JSON for survey: %s", 
+                      session_id, survey_name))
+      
+      survey_json <- survey_record$json
+      
+      session$sendCustomMessage("loadSurvey", fromJSON(survey_json, simplifyVector = FALSE))
+    }, error = function(e) {
+      warning(sprintf("[Session %s] Error loading survey JSON: %s\nJSON content: %s", 
+                      session_id, e$message, substr(survey_json, 1, 100)))
+    })
   })
   
   # Handle dynamic field configurations
   observe({
-    req(survey_config())
-    req(config_cache())
+    req(rv$dynamic_config)
     
-    isolate({
-      config <- config_cache()
-      survey_identifier <- survey_config()$survey_identifier
-      query <- survey_config()$query
+    config <- rv$dynamic_config
+    query <- parseQueryString(session$clientData$url_search)
+    
+    # Only proceed if we have necessary configuration
+    if (is.null(config$table_name) || is.null(config$group_col)) {
+      return()
+    }
+    
+    # Get table data once for all cases
+    table_data <- get_cached_table(config$table_name)
+    
+    # CASE 1: Assign group in URL query parameter, no selections for group or additional choices
+    if (!config$select_group && is.null(config$choices_col)) {
+      group_val <- handle_group_value(query[[config$group_col]])
+      if (!is.null(group_val) && !group_val %in% table_data[[config$group_col]]) {
+        warning(sprintf("[Session %s] Invalid group value: %s", session_id, group_val))
+      }
+    }
+    
+    # CASE 2: Select group, no additional choices
+    else if (config$select_group && is.null(config$choices_col)) {
+      if (config$group_col %in% names(table_data)) {
+        update_survey_choices(config$group_col, table_data[[config$group_col]])
+      }
+    }
+    
+    # CASE 3: Assign group in URL query parameter, select from additional choices
+    else if (!config$select_group && !is.null(config$choices_col)) {
+      group_val <- handle_group_value(query[[config$group_col]])
       
-      # Process each field configuration
-      for (field in seq_along(config$fields)) {
-        field_config <- config$fields[[field]]
+      if (!is.null(group_val) && group_val %in% table_data[[config$group_col]]) {
+        filtered_data <- table_data[table_data[[config$group_col]] == group_val, ]
         
-        # Check if field configuration applies to current survey
-        if (!is.null(survey_identifier) && survey_identifier %in% field_config$surveys) {
-          table_name <- field_config$table_name
-          table_data <- get_table_data(table_name)
-          
-          # Cache first relevant field configuration
-          if (is.null(current_field_config())) {
-            current_field_config(field_config)
-          }
-          
-          # CASE 1: Assign group in URL query parameter, no selections for group or additional choices
-          if (!any(names(field_config) == "choices_col") && !field_config$select_group) {
-            group_col <- field_config$group_col
-            if (!is.null(group_col) && !is.null(query[[group_col]])) {
-              group_val <- query[[group_col]]
-              if(token_active) {
-                token_object <- token_table[token_table$token == group_val, "object"]
-                group_lookup(token_object)
-                group_value(token_object)  # Store actual value
-              } else {
-                group_lookup(group_val)
-                group_value(group_val)  # Store actual value
-              }
-            }
-          }
-          
-          # CASE 2: Select group, no additional choices
-          if (!any(names(field_config) == "choices_col") && field_config$select_group) {
-            group_col <- field_config$group_col
-            if (!is.null(group_col) && group_col %in% names(table_data)) {
-              session$sendCustomMessage(
-                "updateChoices",
-                list(
-                  "targetQuestion" = group_col,
-                  "choices" = as.list(unique(table_data[[group_col]]))
-                )
-              )
-            }
-          }
-          
-          # CASE 3: Assign group in URL query parameter, select from additional choices
-          if (any(names(field_config) == "choices_col") && !field_config$select_group) {
-            group_col <- field_config$group_col
-            if (!is.null(group_col) && !is.null(query[[group_col]])) {
-              group_val <- query[[group_col]]
-              
-              # Store both the lookup value and actual value
-              current_group <- if(token_active) {
-                token_object <- token_table[token_table$token == group_val, "object"]
-                group_lookup(token_object)
-                group_value(token_object)  # Store actual value
-                token_object
-              } else {
-                group_lookup(group_val)
-                group_value(group_val)  # Store actual value
-                group_val
-              }
-              
-              if (length(current_group) > 0 && current_group %in% table_data[[group_col]]) {
-                choices_col <- field_config$choices_col
-                filtered_data <- table_data[table_data[[group_col]] == current_group, ]
-                
-                if (!is.null(choices_col) && choices_col %in% names(filtered_data)) {
-                  session$sendCustomMessage(
-                    "updateChoices",
-                    list(
-                      "targetQuestion" = choices_col,
-                      "choices" = as.list(unique(filtered_data[[choices_col]]))
-                    )
-                  )
-                }
-              }
-            }
-          }
-          
-          # CASE 4: Select group, select from additional choices
-          if (any(names(field_config) == "choices_col") && field_config$select_group) {
-            group_col <- field_config$group_col
-            if (!is.null(group_col) && group_col %in% names(table_data)) {
-              session$sendCustomMessage(
-                "updateChoices",
-                list(
-                  "targetQuestion" = group_col,
-                  "choices" = as.list(unique(table_data[[group_col]]))
-                )
-              )
-            }
-          }
+        if (config$choices_col %in% names(filtered_data)) {
+          update_survey_choices(config$choices_col, filtered_data[[config$choices_col]])
         }
       }
-    })
-  })
-  
-  # Handler for dynamic choice updates remains the same
-  observeEvent(input$selectedChoice, {
-    req(config_cache())
+    }
     
-    if (length(input$selectedChoice$selected) > 0) {
-      config <- config_cache()
-      field_name <- input$selectedChoice$fieldName
-      selected_group <- input$selectedChoice$selected
+    # CASE 4: Select group, select from additional choices
+    else if (config$select_group && !is.null(config$choices_col)) {
+      # Initialize group selection dropdown
+      if (config$group_col %in% names(table_data)) {
+        update_survey_choices(config$group_col, table_data[[config$group_col]])
+      }
       
-      for (field_config in config$fields) {
-        if (any(names(field_config) == "choices_col") && 
-            field_config$select_group && 
-            !is.null(field_config$group_col) && 
-            field_config$group_col == field_name) {
-          
-          table_name <- field_config$table_name
-          table_data <- get_table_data(table_name)
-          
-          if (length(selected_group) > 0 && selected_group %in% table_data[[field_config$group_col]]) {
-            choices_col <- field_config$choices_col
-            filtered_data <- table_data[table_data[[field_config$group_col]] == selected_group, ]
-            
-            if (!is.null(choices_col) && choices_col %in% names(filtered_data)) {
-              session$sendCustomMessage(
-                "updateChoices",
-                list(
-                  "targetQuestion" = choices_col,
-                  "choices" = as.list(unique(filtered_data[[choices_col]]))
-                )
-              )
-            }
-          }
-          break
+      # Handle any existing group selection
+      selected_group <- query[[config$group_col]]
+      if (!is.null(selected_group)) {
+        group_val <- resolve_token(selected_group)
+        if (length(group_val) > 0 && group_val %in% table_data[[config$group_col]]) {
+          filtered_data <- table_data[table_data[[config$group_col]] == group_val, ]
+          update_survey_choices(config$choices_col, filtered_data[[config$choices_col]])
         }
       }
     }
   })
   
-  # Survey data submission handler remains the same
-  observeEvent(input$surveyData, {
-    data <- fromJSON(input$surveyData)
+  # Handle dynamic updates based on user selections
+  observeEvent(input$selectedChoice, {
+    req(rv$dynamic_config)
+    selected <- input$selectedChoice
     
-    field_config <- current_field_config()
-    if (!is.null(field_config) && !is.null(field_config$group_col)) {
-      if (!is.null(group_value())) {
-        data[[field_config$group_col]] <- group_value()
-      }
+    # Only process relevant field changes
+    if (is.null(selected$fieldName) || is.null(selected$selected)) {
+      return()
     }
     
-    survey_data(data)
-    output$surveyData <- renderTable({
-      req(survey_data())
-      survey_data()
-    })
+    config <- rv$dynamic_config
+    
+    # Check if this is a group selection that needs to update choices
+    if (config$select_group && 
+        !is.null(config$choices_col) && 
+        selected$fieldName == config$group_col) {
+      
+      table_data <- get_cached_table(config$table_name)
+      
+      if (selected$selected %in% table_data[[config$group_col]]) {
+        filtered_data <- table_data[table_data[[config$group_col]] == selected$selected, ]
+        update_survey_choices(config$choices_col, filtered_data[[config$choices_col]])
+      }
+    }
   })
   
-  return(survey_data)
+  # Handle survey completion
+  observeEvent(input$surveyData, {
+    data <- jsonlite::fromJSON(input$surveyData)
+    
+    # Add group value if it was set from URL
+    if (!is.null(rv$group_value)) {
+      data[[rv$dynamic_config$group_col]] <- rv$group_value
+    }
+    
+    rv$survey_data <- data
+  })
+  
+  # Return reactive survey data
+  return(reactive(rv$survey_data))
 }
