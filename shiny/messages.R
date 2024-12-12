@@ -59,32 +59,6 @@ messageUI <- function() {
     )
   )
 }
-# Handle URL parameters and show appropriate messages
-handle_url_parameters <- function(session, token_reactive) {
-  observeEvent(session$clientData$url_search, {
-    query <- parseQueryString(session$clientData$url_search)
-    
-    if (is.null(query$survey)) {
-      hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
-    } else {
-      shinyjs::hide("waitingMessage", anim = TRUE, animType = "fade", time = 1)
-    }
-  }, ignoreInit = FALSE)
-}
-
-# Handle URL parameters and show appropriate messages
-handle_url_parameters_tokenless <- function(session, token_reactive) {
-  observeEvent(session$clientData$url_search, {
-    query <- parseQueryString(session$clientData$url_search)
-    
-    if (is.null(query$survey)) {
-      hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
-    } else {
-      shinyjs::hide("waitingMessage", anim = TRUE, animType = "fade", time = 1)
-    }
-    
-  }, ignoreInit = FALSE)
-}
 
 # Helper function to hide one message and show another
 hide_and_show_message <- function(hide_id, show_id) {

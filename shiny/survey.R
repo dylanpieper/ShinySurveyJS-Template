@@ -22,7 +22,8 @@ surveyServer <- function(input = NULL,
                          token_active = NULL, 
                          token_table = NULL,
                          db_ops = NULL,
-                         session_id = NULL) {
+                         session_id = NULL,
+                         survey_table_name = NULL) {
   
   # Initialize reactive values for state management
   rv <- reactiveValues(
@@ -46,13 +47,21 @@ surveyServer <- function(input = NULL,
   # Helper function to safely get and cache table data
   get_cached_table <- function(table_name) {
     if (!exists(table_name, envir = rv$table_cache)) {
-      table_data <- tryCatch({
-        db_ops$read_table(table_name)
-      }, error = function(e) {
-        warning(sprintf("[Session %s] Error reading table %s: %s", 
-                        session_id, table_name, e$message))
-        NULL
-      })
+      max_attempts <- 3
+      attempt <- 1
+      table_data <- NULL
+      
+      while (is.null(table_data) && attempt <= max_attempts) {
+        table_data <- tryCatch({
+          db_ops$read_table(table_name)
+        }, error = function(e) {
+          warning(sprintf("[Session %s] Attempt %d: Error reading table %s: %s", 
+                          session_id, attempt, table_name, e$message))
+          NULL
+        })
+        attempt <- attempt + 1
+      }
+      
       if (!is.null(table_data)) {
         assign(table_name, table_data, envir = rv$table_cache)
       }
@@ -125,6 +134,7 @@ surveyServer <- function(input = NULL,
     if (is.null(survey_param)) {
       warning(sprintf("[Session %s] No survey parameter in query: %s", 
                       session_id, paste(names(query), collapse=", ")))
+      hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
       return()
     }
     
@@ -145,10 +155,10 @@ surveyServer <- function(input = NULL,
     # Query survey configuration from database with detailed error tracking
     survey_record <- tryCatch({
       
-      result <- db_ops$read_table("surveys") |> as.data.frame() |> dplyr::filter(survey_name == !!survey_name)
+      result <- db_ops$read_table(survey_table_name) |> as.data.frame() |> dplyr::filter(survey_name == !!survey_name)
       
       # Debug log for query result
-      message(sprintf("[Session %s] Total Surveys: %s rows", 
+      message(sprintf("[Session %s] Loaded Survey Table (n = %s)", 
                       session_id, if(is.null(result)) "NULL" else nrow(result)))
       
       result
@@ -193,6 +203,8 @@ surveyServer <- function(input = NULL,
       survey_json <- survey_record$json
       
       session$sendCustomMessage("loadSurvey", fromJSON(survey_json, simplifyVector = FALSE))
+      
+      shinyjs::hide("waitingMessage", anim = TRUE, animType = "fade", time = 1)
     }, error = function(e) {
       warning(sprintf("[Session %s] Error loading survey JSON: %s\nJSON content: %s", 
                       session_id, e$message, substr(survey_json, 1, 100)))
