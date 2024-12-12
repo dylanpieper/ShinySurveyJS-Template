@@ -37,25 +37,28 @@ DB_PORT=6543
 DB_NAME=postgres
 DB_USER=username
 DB_PASSWORD=password
+token_active=TRUE
+token_table_name=tokens
+survey_table_name=surveys
 ```
 
 3.  Install the required R packages:
 
 ``` r
 if (!requireNamespace("pak", quietly = TRUE)) install.packages("pak")
-pak::pkg_install(c("shiny", "jsonlite", "shinyjs", "httr", "DBI", "RPostgres", "yaml", "future"))
+pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
+                   "httr", "DBI", "RPostgres", "pool", future", "promises"))
 ```
 
 ## Setup Dynamic Fields
 
-1.  Create the table `entities` in your database to explore the example surveys and dynamic fields functionality. You can run the queries in `setup_example.sql` to create the setup tables and insert the example data.
+1.  You can run the queries in `setup_example.sql` to create the setup tables and insert the example data.
 
-```{=html}
 <!-- -->
-```
-2.  Optionally, create and manage your own dynamic fields table by adding your table and mapping your fields to the `dynamic_fields.yml` file. The `group_col` is the column that will be used to filter the dynamic fields, which is assigned a token and used in the URL query parameter. The `choices_col` is the column that will be used to locate the field name and populate the survey choices. The `surveys` field is a list of survey names that the dynamic field applies to.
 
-Because the app uses URL queries, don't use spaces and special characters for the `group_col`.
+2.  Optionally, create and manage your own dynamic fields table by creating a table and mapping your fields to the `config_json` field as a JSON object. The `table_name` is the table name. The `group_col` is the column that will be used to filter the dynamic fields. Using `select_group`, the group can be set to populate the choices in a JSON field or defined in the URL for individual tracking. The `choices_col` is the column used to locate the field name and populate the survey choices. The `surveys` field is a list of survey names that the dynamic field applies to.
+
+Because the app uses URL queries, don't use spaces and special characters for the `group_col` value.
 
 ## Run Survey App
 
@@ -67,19 +70,19 @@ runApp()
 
 If the `tokens` table does not exist yet, the app will automatically create it. The app will also generate tokens for each survey and store them in the database.
 
-Tokenization is used by default. Using tokens requires an additional table read, making it a slightly slower process, which may not be necessary for your use case. Tokens are generated as a background task of the app using parallelization. If new tokens are created, users can access them on the next page load after the process runs. You can customize the tokenization algorithm in `shiny/token.R`.
+Tokenization is used by default. Using tokens requires an additional table read, making it a slower process. Tokens are generated as a background task of the app using parallelization. If new tokens are created, users can access them on the next page load after the process runs. You can customize the tokenization algorithm in `shiny/token.R`.
 
 2.  Access survey with URL query parameters:
     -   Generic:
         -   Without tokens (same as JSON file name): `/?survey=name`
         -   With tokens: `/?survey=token`
     -   Examples with dynamic fields:
-        -   Without tokens (`token_active <- FALSE`): `/?survey=DynamicPersonID&entity=MariaGarcia`
-        -   With tokens (`token_active <- TRUE`): `/?survey=LimeMeteorSevenHundredThirtyTwo&entity=FiveHundredSeventyFourGalaxyBrown`
+        -   Without tokens (`token_active <- FALSE`): `/?survey=dynamic_person_id&doctor=James_Wilson`
+        -   With tokens (`token_active <- TRUE`): `/?survey=SilverGalaxyEightHundredEightyOne&doctor=EightHundredTwelveGalaxyPlum`
 
 ## Use Any Database
 
-Easily change the database driver in `db.R` to use any database system compatible with the `DBI` package (see [list of backends](https://github.com/r-dbi/backends#readme)). The `RPostgres` package is used by default.
+Easily change the database driver in `database.R` to use any database system compatible with the `DBI` package (see [list of backends](https://github.com/r-dbi/backends#readme)). The `RPostgres` package is used by default.
 
 ## Follow The Roadmap
 
@@ -93,4 +96,4 @@ Easily change the database driver in `db.R` to use any database system compatibl
 
 ## Disclaimer
 
-This application is provided as-is and does not include comprehensive security measures or authentication protocols. Users should be aware that there is no built-in authentication system, user management, or protection against unauthorized access. The application lacks encryption for data transmission and provides no safeguards against common web vulnerabilities or SQL injection. Due to these limitations, this application is not recommended for production use without significant security enhancements. Users who choose to deploy this application assume all risks and responsibilities for implementing necessary security measures, including authentication, authorization, and data encryption. The developers and maintainers are not responsible for any security breaches, data loss, or damages resulting from its use. No warranty or guarantee is provided regarding the application's security or fitness for any particular purpose. By using this application, users acknowledge these limitations and accept all associated risks.
+This application template was not built with comprehensive security features. It lacks authentication, user management, private data encryption, and protection against common vulnerabilities. It is not suitable for production use without realistic security upgrades. Users must implement their own security measures and accept all associated risks. No warranty is provided.
