@@ -52,11 +52,13 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
 
 ## Setup Dynamic Fields
 
-1.  You can run the queries in `setup_example.sql` to create the setup tables and insert the example data.
+1.  Run the queries in `setup_example.sql` to create the setup tables and insert the example data.
 
 <!-- -->
 
-2.  Optionally, create and manage your own dynamic fields table by creating a table and mapping your fields to the `config_json` field as a JSON object. The `table_name` is the table name. The `group_col` is the column that will be used to filter the dynamic fields. Using `select_group`, the group can be set to populate the choices in a JSON field or defined in the URL for individual tracking. The `choices_col` is the column used to locate the field name and populate the survey choices. The `surveys` field is a list of survey names that the dynamic field applies to.
+2.  Create and manage your own dynamic fields table by creating a table and mapping your fields to the `config_json` field as a JSON object. The `table_name` is the table name for the dynamic field . The `group_col` is the column that will be used to filter the dynamic fields. Using `select_group`, the group either populates the group objects as choices in a JSON input field or is defined in the URL for individual tracking. The `choices_col` is the column used to locate the field name and populate the survey choices. The `surveys` field is a list of survey names that the dynamic field applies to.
+
+[Add dynamic survey examples here.]
 
 Because the app uses URL queries, don't use spaces and special characters for the `group_col` value.
 
