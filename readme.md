@@ -55,7 +55,7 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
 
 1.  Run the queries in `setup_example.sql` to create the setup the `surveys`, `organization_location`, and `doctor_clinic` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
 
-2.  Create and manage your own dynamic fields table by mapping your fields to the `config_json` field in your `surveys` table as a JSON object:
+2.  Optionally, create and manage your own dynamic fields table by mapping your fields to the `config_json` field in your `surveys` table as a JSON object:
 
     -   `table_name`: The table name for the dynamic field
     -   `group_col`: The column name that will be used to filter the dynamic fields
@@ -63,17 +63,17 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
     -   `choices_col`: The column name used to populate the survey item choices
     -   `surveys`: A list of survey names that the dynamic field applies to
 
-Because the app uses URL queries, don't use spaces and special characters for the `group_col` value.
+Don't use spaces and special characters for the `group_col` value if you are using `"select_group": false`.
 
 ## Dynamic Survey Examples
 
 These examples demonstrate how to use dynamic fields to track individuals and/or update survey item choices based on the URL query parameters. This functionality can be fully customized in `shiny/survey.R` if you want to add additional layers of logic.
 
-1.  `dynamic_survey_1`: Assign group in URL query parameter, no selections for group or additional choices
+1.  `dynamic_survey_1`: Assign group in URL query, no selections for group or additional choices
 2.  `dynamic_survey_2`: Select group, no additional choices
-3.  `dynamic_survey_3`: Assign group in URL query parameter, select from additional choices
+3.  `dynamic_survey_3`: Assign group in URL query, select from additional choices
 4.  `dynamic_survey_4`: Select group, select from additional choices
-5.  `dynamic_person_id`: Assign person ID to doctors in URL query parameter with a selection for the clinic they work in
+5.  `dynamic_person_id`: Assign person ID to doctors in URL query with a selection for the clinic they work in
 
 ## Run Survey App
 
