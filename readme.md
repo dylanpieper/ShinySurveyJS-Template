@@ -8,7 +8,7 @@ A template for hosting multiple surveys using **Shiny**, **SurveyJS**, and **Pos
 
 SurveyJS is a powerful open-source JavaScript library for designing forms and questionnaires with a ecosystem that includes a [visual editor](https://surveyjs.io/create-free-survey). It offers complete backend flexibility, as its libraries work seamlessly with any combination of server and database technologies. The front-end natively supports branching and conditional logic, input validation, diverse question types, theme and css options, adding panels and pages, and supporting multiple languages.
 
-There are a couple amazing Shiny-based survey tools like [surveydown](https://github.com/surveydown-dev/surveydown) or [shinysurveys](https://github.com/jdtrat/shinysurveys). However, these tools rely on Shiny for building the user interface (UI) and are limited to hosting a single survey per server. Because SurveyJS manages most of the UI components, it simplifies the development of a Shiny codebase that supports abstraction, such as hosting multiple surveys on the same server.
+There are a couple amazing Shiny-based survey tools like [surveydown](https://github.com/surveydown-dev/surveydown) or [shinysurveys](https://github.com/jdtrat/shinysurveys). However, these tools rely on Shiny for building the user interface (UI) and are limited to hosting a single survey per server. Because SurveyJS manages most of the UI components, it simplifies the development of a Shiny codebase that supports abstraction, such as hosting multiple surveys on the same server and adding dynamic fields that can be updated in real-time in the database.
 
 ## Key Features
 
@@ -19,7 +19,7 @@ There are a couple amazing Shiny-based survey tools like [surveydown](https://gi
     -   Automatically generates and stores unique tokens in the database
     -   Supports multiple parameters and configurations
     -   Enhances security by obscuring direct parameter access
--   Query parameters in URLs and database tables enable user or participant tracking and dynamically updating survey response options during data collection
+-   Query parameters in URLs and database tables enable user or participant tracking and dynamically updating survey item choices (or response options)
 
 ## Get Started
 
@@ -29,15 +29,16 @@ There are a couple amazing Shiny-based survey tools like [surveydown](https://gi
 git clone https://github.com/dylanpieper/ShinySurveyJS.git
 ```
 
-2.  Create a `.env` file, modifying the following template with your database credentials. In Supabase, navigate to the project sidebar navigation pane ➡️ project settings ➡️ configuration: database ➡️ database settings: connection parameters.
+2.  Create a `.env` file, modifying the following template with your database credentials. In Supabase, you can find project connect details by clicking "Connect" in the top bar.
 
 ``` env
-DB_HOST=aws-0-us-west-1.pooler.supabase.com
-DB_PORT=6543
+DB_HOST=aws-0-us-east-2.pooler.supabase.com
+DB_PORT=5432
 DB_NAME=postgres
 DB_USER=username
 DB_PASSWORD=password
 token_active=TRUE
+show_response=TRUE
 token_table_name=tokens
 survey_table_name=surveys
 ```
@@ -52,11 +53,17 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
 
 ## Setup Dynamic Fields
 
-1.  Run the queries in `setup_example.sql` to create the setup tables and insert the example data.
+1.  Run the queries in `setup_example.sql` to create the setup the `surveys`, `organization_location`, and `doctor_clinic` tables and insert the example data.
 
+```{=html}
 <!-- -->
-
-2.  Create and manage your own dynamic fields table by creating a table and mapping your fields to the `config_json` field as a JSON object. The `table_name` is the table name for the dynamic field . The `group_col` is the column that will be used to filter the dynamic fields. Using `select_group`, the group either populates the group objects as choices in a JSON input field or is defined in the URL for individual tracking. The `choices_col` is the column used to locate the field name and populate the survey choices. The `surveys` field is a list of survey names that the dynamic field applies to.
+```
+2.  Create and manage your own dynamic fields table by mapping your fields to the `config_json` field in your `surveys` table as a JSON object:
+  - `table_name` the table name for the dynamic field
+  - `group_col`: the column name that will be used to filter the dynamic fields
+  - `select_group`: the group either populates the rows as choices in a JSON input field or is defined in the URL query for individual tracking
+  - `choices_col`: the column name used to populate the survey item choices
+  - `surveys`: a list of survey names that the dynamic field applies to
 
 [Add dynamic survey examples here.]
 
@@ -98,4 +105,4 @@ Easily change the database driver in `database.R` to use any database system com
 
 ## Disclaimer
 
-This application template was not built with comprehensive security features. It lacks authentication, user management, private data encryption, and protection against common vulnerabilities. It is not suitable for production use without realistic security upgrades. Users must implement their own security measures and accept all associated risks. No warranty is provided.
+This application template was not built with comprehensive security features. It lacks authentication, user management, private data encryption, and protection against common vulnerabilities. It is not suitable for production use without personalized security upgrades. Users must implement their own security measures and accept all associated risks. No warranty is provided.
