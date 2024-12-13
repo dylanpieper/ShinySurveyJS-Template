@@ -3,7 +3,7 @@
 
 # if (!requireNamespace("pak", quietly = TRUE)) install.packages("pak")
 # pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs", 
-#                    DBI", "RPostgres", "pool", future", "promises"))
+#                    DBI", "RPostgres", "pool", future", "promises", "DT"))
 
 # Packages ----
 library(R6)
@@ -16,6 +16,7 @@ library(RPostgres)
 library(pool)
 library(future)
 library(promises)
+library(DT)
 
 # Source modules
 source("shiny/survey.R")
@@ -104,11 +105,11 @@ ui <- fluidPage(
     shinyjs::hidden(
       div(
         id = "surveyDataContainer",
-        style = "text-align: center; margin-top: 20px;",
+        style = "text-align: left; margin-top: 20px;",
         tags$p(tags$strong("Data Received:")),
         div(
-          style = "display: flex; justify-content: center;",
-          tableOutput("surveyData")
+          style = "display: flex;",
+          DT::dataTableOutput("surveyData")
         )
       )
     )
@@ -126,6 +127,49 @@ server <- function(input, output, session) {
     initialization_complete = FALSE,
     survey_data = NULL
   )
+  
+  # Async database setup function
+  setup_database_async <- function(session_token, token_active, initial_tokens,
+                                   token_table_name, survey_table_name) {
+    
+    promise <- future({
+      future_pool <- db_pool$new()
+      future_ops <- db_operations$new(future_pool$pool, session_token)
+      future_setup <- db_setup$new(future_ops, session_token)
+      
+      tryCatch({
+        message(sprintf("[Session %s] Starting async database services", session_token))
+        
+        if (token_active) {
+          if (!is.null(initial_tokens) && nrow(initial_tokens) > 0) {
+            message(sprintf("[Session %s] Setting up database with existing tokens (n = %d)", 
+                            session_token, nrow(initial_tokens)))
+            future_setup$setup_database("tokens", initial_tokens, token_table_name, survey_table_name)
+          } else {
+            message(sprintf("[Session %s] Initializing tokens table", session_token))
+            future_setup$setup_database("initial", initial_tokens, token_table_name, survey_table_name)
+          }
+        }
+        
+        list(success = TRUE, error = NULL)
+        
+      }, error = function(e) {
+        message(sprintf("[Session %s] Database setup failed: %s", session_token, e$message))
+        list(success = FALSE, error = e$message)
+      }, finally = {
+        if (!is.null(future_pool$pool) && pool::dbIsValid(future_pool$pool)) {
+          pool::poolClose(future_pool$pool)
+          message(sprintf("[Session %s] Database connection pool closed successfully", 
+                          session_token))
+        }
+      })
+    }, seed = NULL) %...>%
+      catch(function(e) {
+        list(success = FALSE, error = e$message)
+      })
+    
+    return(promise)
+  }
   
   # Database initialization
   observe({
@@ -194,49 +238,6 @@ server <- function(input, output, session) {
     survey_table_name = survey_table_name,
     show_response = show_response
   )
-  
-  # Async database setup function
-  setup_database_async <- function(session_token, token_active, initial_tokens,
-                                   token_table_name, survey_table_name) {
-    
-    promise <- future({
-      future_pool <- db_pool$new()
-      future_ops <- db_operations$new(future_pool$pool, session_token)
-      future_setup <- db_setup$new(future_ops, session_token)
-      
-      tryCatch({
-        message(sprintf("[Session %s] Starting async database services", session_token))
-        
-        if (token_active) {
-          if (!is.null(initial_tokens) && nrow(initial_tokens) > 0) {
-            message(sprintf("[Session %s] Setting up database with existing tokens (n = %d)", 
-                            session_token, nrow(initial_tokens)))
-            future_setup$setup_database("tokens", initial_tokens, token_table_name, survey_table_name)
-          } else {
-            message(sprintf("[Session %s] Initializing tokens table", session_token))
-            future_setup$setup_database("initial", initial_tokens, token_table_name, survey_table_name)
-          }
-        }
-        
-        list(success = TRUE, error = NULL)
-        
-      }, error = function(e) {
-        message(sprintf("[Session %s] Database setup failed: %s", session_token, e$message))
-        list(success = FALSE, error = e$message)
-      }, finally = {
-        if (!is.null(future_pool$pool) && pool::dbIsValid(future_pool$pool)) {
-          pool::poolClose(future_pool$pool)
-          message(sprintf("[Session %s] Database connection pool closed successfully", 
-                          session_token))
-        }
-      })
-    }, seed = NULL) %...>%
-      catch(function(e) {
-        list(success = FALSE, error = e$message)
-      })
-    
-    return(promise)
-  }
   
   session$onSessionEnded(function() {
     app_state$cleanup()

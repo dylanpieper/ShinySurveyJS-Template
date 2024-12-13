@@ -8,7 +8,7 @@ A template for hosting multiple surveys using **Shiny**, **SurveyJS**, and **Pos
 
 SurveyJS is a powerful open-source JavaScript library for designing forms and questionnaires with a ecosystem that includes a [visual editor](https://surveyjs.io/create-free-survey). It offers complete backend flexibility, as its libraries work seamlessly with any combination of server and database technologies. The front-end natively supports branching and conditional logic, input validation, diverse question types, theme and css options, adding panels and pages, and supporting multiple languages.
 
-There are a couple amazing Shiny-based survey tools like [surveydown](https://github.com/surveydown-dev/surveydown) or [shinysurveys](https://github.com/jdtrat/shinysurveys). However, these tools rely on Shiny for building the user interface (UI) and are limited to hosting a single survey per server. Because SurveyJS manages most of the UI components, it simplifies the development of a Shiny codebase that supports abstraction, such as hosting multiple surveys on the same server and adding dynamic fields that can be updated in real-time in the database.
+There are a couple amazing Shiny-based survey tools like [surveydown](https://github.com/surveydown-dev/surveydown) or [shinysurveys](https://github.com/jdtrat/shinysurveys). However, these tools rely on Shiny for building the user interface (UI) and are limited to hosting a single survey per server. Because SurveyJS manages most of the UI components, it simplifies the development of a Shiny codebase that supports abstraction, such as hosting multiple surveys on the same server with unique dynamic field configurations.
 
 ## Key Features
 
@@ -48,7 +48,7 @@ survey_table_name=surveys
 ``` r
 if (!requireNamespace("pak", quietly = TRUE)) install.packages("pak")
 pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
-                   "DBI", "RPostgres", "pool", future", "promises"))
+                   "DBI", "RPostgres", "pool", "future", "promises", "DT"))
 ```
 
 ## Setup Dynamic Fields
@@ -67,7 +67,7 @@ Don't use spaces and special characters for the `group_col` value if you are usi
 
 ## Dynamic Survey Examples
 
-These examples demonstrate how to use dynamic fields to track individuals and/or update survey item choices based on the URL query parameters. This functionality can be fully customized in `shiny/survey.R` if you want to add additional layers of logic.
+These examples demonstrate how to use dynamic fields to track individuals and/or update survey item choices based on the URL query parameters. This functionality can be customized in `shiny/survey.R` if you want to add additional layers of logic.
 
 1.  `dynamic_survey_1`: Assign group in URL query, no selections for group or additional choices
 2.  `dynamic_survey_2`: Select group, no additional choices

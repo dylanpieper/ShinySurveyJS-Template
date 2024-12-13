@@ -347,11 +347,19 @@ surveyServer <- function(input = NULL,
     return(data)
   }
   
-  # Render the survey data table - using the correct namespace
-  output$surveyData <- renderTable({
+  # Render the survey data table with paging
+  output$surveyData <- DT::renderDT({
     req(rv$display_data)
-    rv$display_data
-  }, bordered = TRUE, hover = TRUE)
+    DT::datatable(
+      rv$display_data,
+      options = list(
+        pageLength = 10,
+        scrollX = TRUE,
+        dom = 'tp'
+      ),
+      rownames = FALSE
+    )
+  })
   
   # Return reactive survey data (unchanged)
   return(reactive(rv$survey_data))
