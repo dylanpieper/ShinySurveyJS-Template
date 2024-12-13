@@ -1,4 +1,4 @@
--- Create the survey configurations table
+-- Create the survey config table
 CREATE TABLE surveys (
     id SERIAL PRIMARY KEY,
     survey_name VARCHAR(255) NOT NULL,
@@ -8,11 +8,11 @@ CREATE TABLE surveys (
     start_date TIMESTAMP WITH TIME ZONE,
     end_date TIMESTAMP WITH TIME ZONE,
     created_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(survey_name)
 );
 
--- Insert the configurations
+-- Insert the configs
 INSERT INTO surveys (survey_name, config_json, json)
 VALUES 
     ('dynamic_survey_1', 
@@ -68,7 +68,7 @@ VALUES
         "choices_col": "location"
     }'::json,
     '{
-        "title": "Dyanmic Survey (Example 3)",
+        "title": "Dynamic Survey (Example 3)",
         "description": "Case: Assign group in URL query parameter, select from additional choices",
         "elements": [
             {
@@ -142,7 +142,7 @@ VALUES
             },
             {
                 "type": "dropdown",
-                "name": "sessionType",
+                "name": "session_type",
                 "title": "Type of Session",
                 "isRequired": true,
                 "choices": [
@@ -186,7 +186,7 @@ VALUES
             },
             {
                 "type": "dropdown",
-                "name": "nextSession",
+                "name": "next_session",
                 "title": "Next Session",
                 "choices": [
                     "1 week",
@@ -209,7 +209,7 @@ VALUES
                 "elements": [
                     {
                         "type": "radiogroup",
-                        "name": "productQuality",
+                        "name": "product_quality",
                         "title": "What is your opinion on the quality of our product?",
                         "choices": ["Excellent", "Good", "Fair", "Poor"]
                     },
@@ -220,7 +220,7 @@ VALUES
                     },
                     {
                         "type": "rating",
-                        "name": "productSatisfaction",
+                        "name": "product_satisfaction",
                         "title": "How satisfied are you with the product?",
                         "rateMin": 0,
                         "rateMax": 5,
@@ -228,7 +228,7 @@ VALUES
                     },
                     {
                         "type": "dropdown",
-                        "name": "recommendProduct",
+                        "name": "recommend_product",
                         "title": "Would you recommend our product to your friends?",
                         "choices": ["Definitely", "Maybe", "Not sure", "Never"]
                     }
@@ -237,26 +237,13 @@ VALUES
         ]
     }');
 
--- Create a function for updating the timestamp
-CREATE OR REPLACE FUNCTION update_updated_date()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_date = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
--- Create a trigger to automatically update the updated_date
-CREATE TRIGGER update_surveys_modtime
-    BEFORE UPDATE ON surveys
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_date();
-    
 -- Create the tables for the dynamic survey examples
- CREATE TABLE organization_location (
+CREATE TABLE organization_location (
     id SERIAL PRIMARY KEY,
     organization TEXT,
-    location TEXT
+    location TEXT,
+    date_created TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 INSERT INTO organization_location (organization, location) 
@@ -271,7 +258,9 @@ VALUES
 CREATE TABLE doctor_clinic (
     id SERIAL PRIMARY KEY,
     doctor TEXT,
-    clinic TEXT
+    clinic TEXT,
+    date_created TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
    
 INSERT INTO doctor_clinic (doctor, clinic) VALUES
@@ -281,20 +270,9 @@ INSERT INTO doctor_clinic (doctor, clinic) VALUES
     ('James_Wilson', 'Eastside Clinic'),
     ('Maria_Garcia', 'Westside Health'),
     ('Maria_Garcia', 'Eastside Clinic');   
-    
--- Add timestamp columns to organization_location
-ALTER TABLE organization_location
-ADD COLUMN date_created TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
 
--- Add timestamp columns to doctor_clinic
-ALTER TABLE doctor_clinic
-ADD COLUMN date_created TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
-
--- Create or replace the function for updating the timestamp
--- (Using a different name to avoid conflict with existing function)
-CREATE OR REPLACE FUNCTION update_timestamp_columns()
+-- Create a single function for all timestamp updates
+CREATE OR REPLACE FUNCTION update_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated = CURRENT_TIMESTAMP;
@@ -302,13 +280,18 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Create triggers for each table
-CREATE TRIGGER update_organization_location_timestamp
+-- Create timestamp update triggers for all tables
+CREATE TRIGGER update_timestamp_trigger
+    BEFORE UPDATE ON surveys
+    FOR EACH ROW
+    EXECUTE FUNCTION update_timestamp();
+
+CREATE TRIGGER update_timestamp_trigger
     BEFORE UPDATE ON organization_location
     FOR EACH ROW
-    EXECUTE FUNCTION update_timestamp_columns();
+    EXECUTE FUNCTION update_timestamp();
 
-CREATE TRIGGER update_doctor_clinic_timestamp
+CREATE TRIGGER update_timestamp_trigger
     BEFORE UPDATE ON doctor_clinic
     FOR EACH ROW
-    EXECUTE FUNCTION update_timestamp_columns();
+    EXECUTE FUNCTION update_timestamp();
