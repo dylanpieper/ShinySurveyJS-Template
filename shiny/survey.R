@@ -23,7 +23,8 @@ surveyServer <- function(input = NULL,
                          token_table = NULL,
                          db_ops = NULL,
                          session_id = NULL,
-                         survey_table_name = NULL) {
+                         survey_table_name = NULL,
+                         show_response = TRUE) {
   
   # Initialize reactive values for state management
   rv <- reactiveValues(
@@ -32,7 +33,8 @@ surveyServer <- function(input = NULL,
     dynamic_config = NULL,       # Parsed config_json for dynamic fields
     group_value = NULL,          # Current group value
     table_cache = new.env(),     # Cache for database tables
-    token_data = NULL            # Store token data
+    token_data = NULL,           # Store token data
+    display_data = NULL          # Processed data for display
   )
   
   # Observe token table changes
@@ -158,7 +160,7 @@ surveyServer <- function(input = NULL,
       result <- db_ops$read_table(survey_table_name) |> as.data.frame() |> dplyr::filter(survey_name == !!survey_name)
       
       # Debug log for query result
-      message(sprintf("[Session %s] Loaded Survey Table (n = %s)", 
+      message(sprintf("[Session %s] Loaded survey table (n = %s)", 
                       session_id, if(is.null(result)) "NULL" else nrow(result)))
       
       result
@@ -186,11 +188,11 @@ surveyServer <- function(input = NULL,
     # Parse config_json if present with detailed error handling
     if (!is.null(survey_record$config_json)) {
       tryCatch({
-        message(sprintf("[Session %s] Parsing config_json for survey: %s", 
+        message(sprintf("[Session %s] Parsing JSON config for survey: %s", 
                         session_id, survey_name))
         rv$dynamic_config <- jsonlite::fromJSON(survey_record$config_json)
       }, error = function(e) {
-        warning(sprintf("[Session %s] Error parsing config_json: %s\nConfig JSON content: %s", 
+        warning(sprintf("[Session %s] Error parsing JSON config: %s\nJSON config content: %s", 
                         session_id, e$message, survey_record$config_json))
       })
     }
@@ -299,18 +301,58 @@ surveyServer <- function(input = NULL,
     }
   })
   
-  # Handle survey completion
+  # Handle survey completion and data processing
   observeEvent(input$surveyData, {
-    data <- jsonlite::fromJSON(input$surveyData)
-    
-    # Add group value if it was set from URL
-    if (!is.null(rv$group_value)) {
-      data[[rv$dynamic_config$group_col]] <- rv$group_value
-    }
-    
-    rv$survey_data <- data
+    tryCatch({
+      # Parse the survey data
+      data <- jsonlite::fromJSON(input$surveyData)
+      
+      # Add group value if it was set from URL
+      if (!is.null(rv$group_value) && !is.null(rv$dynamic_config$group_col)) {
+        data[[rv$dynamic_config$group_col]] <- rv$group_value
+      }
+      
+      # Store raw survey data
+      rv$survey_data <- data
+      
+      # Process data for display
+      rv$display_data <- process_survey_data(data)
+      
+      # Show the data container if show_response is TRUE
+      if (show_response) {
+        shinyjs::show("surveyDataContainer")
+      }
+      
+    }, error = function(e) {
+      warning(sprintf("[Session %s] Error processing survey data: %s", 
+                      session_id, e$message))
+    })
   })
   
-  # Return reactive survey data
+  # Helper function to process survey data for display
+  process_survey_data <- function(data) {
+    if (is.null(data)) return(NULL)
+    
+    # Convert data to data frame if it's not already
+    if (!is.data.frame(data)) {
+      data <- as.data.frame(data, stringsAsFactors = FALSE)
+    }
+    
+    # Remove any empty columns
+    data <- data[, colSums(is.na(data)) < nrow(data), drop = FALSE]
+    
+    # Reorder columns alphabetically
+    data <- data[, sort(names(data)), drop = FALSE]
+    
+    return(data)
+  }
+  
+  # Render the survey data table - using the correct namespace
+  output$surveyData <- renderTable({
+    req(rv$display_data)
+    rv$display_data
+  }, bordered = TRUE, hover = TRUE)
+  
+  # Return reactive survey data (unchanged)
   return(reactive(rv$survey_data))
 }
