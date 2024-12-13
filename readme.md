@@ -48,16 +48,13 @@ survey_table_name=surveys
 ``` r
 if (!requireNamespace("pak", quietly = TRUE)) install.packages("pak")
 pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
-                   "httr", "DBI", "RPostgres", "pool", future", "promises"))
+                   "DBI", "RPostgres", "pool", future", "promises"))
 ```
 
 ## Setup Dynamic Fields
 
-1.  Run the queries in `setup_example.sql` to create the setup the `surveys`, `organization_location`, and `doctor_clinic` tables and insert the example data.
+1.  Run the queries in `setup_example.sql` to create the setup the `surveys`, `organization_location`, and `doctor_clinic` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
 
-```{=html}
-<!-- -->
-```
 2.  Create and manage your own dynamic fields table by mapping your fields to the `config_json` field in your `surveys` table as a JSON object:
   - `table_name` the table name for the dynamic field
   - `group_col`: the column name that will be used to filter the dynamic fields
