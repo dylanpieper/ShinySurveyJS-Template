@@ -19,7 +19,7 @@ There are a couple amazing Shiny-based survey tools like [surveydown](https://gi
     -   Automatically generates and stores unique tokens in the database
     -   Supports multiple parameters and configurations
     -   Enhances security by obscuring direct parameter access
--   Query parameters in URLs and database tables enable user or participant tracking and dynamically updating survey item choices (or response options)
+-   Query parameters in URLs and database tables enable user or participant tracking and/or dynamically updating survey item choices (i.e., response options)
 
 ## Get Started
 
@@ -56,15 +56,24 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
 1.  Run the queries in `setup_example.sql` to create the setup the `surveys`, `organization_location`, and `doctor_clinic` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
 
 2.  Create and manage your own dynamic fields table by mapping your fields to the `config_json` field in your `surveys` table as a JSON object:
-  - `table_name` the table name for the dynamic field
-  - `group_col`: the column name that will be used to filter the dynamic fields
-  - `select_group`: the group either populates the rows as choices in a JSON input field or is defined in the URL query for individual tracking
-  - `choices_col`: the column name used to populate the survey item choices
-  - `surveys`: a list of survey names that the dynamic field applies to
 
-[Add dynamic survey examples here.]
+    -   `table_name`: The table name for the dynamic field
+    -   `group_col`: The column name that will be used to filter the dynamic fields
+    -   `select_group`: The group either populates the rows as choices in a JSON input field or is defined in the URL query for individual tracking
+    -   `choices_col`: The column name used to populate the survey item choices
+    -   `surveys`: A list of survey names that the dynamic field applies to
 
 Because the app uses URL queries, don't use spaces and special characters for the `group_col` value.
+
+## Dynamic Survey Examples
+
+These examples demonstrate how to use dynamic fields to track individuals and/or update survey item choices based on the URL query parameters. This functionality can be fully customized in `shiny/survey.R` if you want to add additional layers of logic.
+
+1.  `dynamic_survey_1`: Assign group in URL query parameter, no selections for group or additional choices
+2.  `dynamic_survey_2`: Select group, no additional choices
+3.  `dynamic_survey_3`: Assign group in URL query parameter, select from additional choices
+4.  `dynamic_survey_4`: Select group, select from additional choices
+5.  `dynamic_person_id`: Assign person ID to doctors in URL query parameter with a selection for the clinic they work in
 
 ## Run Survey App
 
@@ -102,4 +111,4 @@ Easily change the database driver in `database.R` to use any database system com
 
 ## Disclaimer
 
-This application template was not built with comprehensive security features. It lacks authentication, user management, private data encryption, and protection against common vulnerabilities. It is not suitable for production use without personalized security upgrades. Users must implement their own security measures and accept all associated risks. No warranty is provided.
+This application template was not built with comprehensive security features. It lacks robust authentication methods, user management, private data encryption, and protection against common vulnerabilities like SQL injection. It is not suitable for production use. Users must implement their own security measures and accept all associated risks. No warranty is provided.
