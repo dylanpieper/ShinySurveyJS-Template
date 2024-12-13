@@ -23,7 +23,7 @@ VALUES
     }'::json,
     '{
         "title": "Dynamic Survey (Example 1)",
-        "description": "Case: Assign group in URL query parameter, no selections for group or additional choices",
+        "description": "Case: Assign group in URL query, no selections for group or additional choices",
         "elements": [
             {
                 "type": "text",
@@ -69,7 +69,7 @@ VALUES
     }'::json,
     '{
         "title": "Dynamic Survey (Example 3)",
-        "description": "Case: Assign group in URL query parameter, select from additional choices",
+        "description": "Case: Assign group in URL query, select from additional choices",
         "elements": [
             {
                 "type": "text",
@@ -131,7 +131,7 @@ VALUES
     }'::json,
     '{
         "title": "Person ID",
-        "description": "Case: Assign person ID to doctors in URL query parameter with a selection for the clinic they work in",
+        "description": "Case: Assign person ID to doctors in URL query with a selection for the clinic they work in",
         "elements": [
             {
                 "type": "radiogroup",

@@ -12,14 +12,14 @@ There are a couple amazing Shiny-based survey tools like [surveydown](https://gi
 
 ## Key Features
 
--   Visual survey creation using SurveyJS's [visual editor](https://surveyjs.io/create-free-survey)
 -   Multiple surveys in a single app
--   PostgreSQL cloud platforms like [Supabase](https://supabase.com/d) offer free and paid database solutions
+-   URL query parameters use database tables to enable participant tracking and/or dynamically updating survey item choices (i.e., response options)
 -   URL query tokens prevent user manipulation of public surveys
     -   Automatically generates and stores unique tokens in the database
     -   Supports multiple parameters and configurations
     -   Enhances security by obscuring direct parameter access
--   Query parameters in URLs and database tables enable user or participant tracking and/or dynamically updating survey item choices (i.e., response options)
+-   Visual survey creation using SurveyJS's [visual editor](https://surveyjs.io/create-free-survey)
+-   PostgreSQL cloud platforms like [Supabase](https://supabase.com/) offer free and paid database solutions
 
 ## Get Started
 
@@ -65,7 +65,7 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
 
 Don't use spaces and special characters for the `group_col` value if you are using `"select_group": false`.
 
-## Dynamic Survey Examples
+## Survey Examples
 
 These examples demonstrate how to use dynamic fields to track individuals and/or update survey item choices based on the URL query parameters. This functionality can be customized in `shiny/survey.R` if you want to add additional layers of logic.
 
@@ -85,7 +85,7 @@ runApp()
 
 If the `tokens` table does not exist yet, the app will automatically create it. The app will also generate tokens for each survey and store them in the database.
 
-Tokenization is used by default. Using tokens requires an additional table read, making it a slower process. Tokens are generated as a background task of the app using parallelization. If new tokens are created, users can access them on the next page load after the process runs. You can customize the tokenization algorithm in `shiny/token.R`.
+Tokenization is used by default. Using tokens requires an additional table read, making it a slower process. Tokens are generated as a background task of the app using parallelization. If new tokens are created, users can access them on the next page load after the process runs. You can customize the tokenization algorithm in `shiny/tokens.R`.
 
 2.  Access survey with URL query parameters:
     -   Generic:

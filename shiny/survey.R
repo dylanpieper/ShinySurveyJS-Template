@@ -228,7 +228,7 @@ surveyServer <- function(input = NULL,
     # Get table data once for all cases
     table_data <- get_cached_table(config$table_name)
     
-    # CASE 1: Assign group in URL query parameter, no selections for group or additional choices
+    # CASE 1: Assign group in URL query, no selections for group or additional choices
     if (!config$select_group && is.null(config$choices_col)) {
       group_val <- handle_group_value(query[[config$group_col]])
       if (!is.null(group_val) && !group_val %in% table_data[[config$group_col]]) {
@@ -243,7 +243,7 @@ surveyServer <- function(input = NULL,
       }
     }
     
-    # CASE 3: Assign group in URL query parameter, select from additional choices
+    # CASE 3: Assign group in URL query, select from additional choices
     else if (!config$select_group && !is.null(config$choices_col)) {
       group_val <- handle_group_value(query[[config$group_col]])
       
