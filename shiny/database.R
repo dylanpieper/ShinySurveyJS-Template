@@ -1,5 +1,3 @@
-# database.R
-
 # DB Pool ----
 
 # Database pool class for managing database connections
@@ -26,7 +24,7 @@ db_pool <- R6::R6Class(
 
 # DB Ops ----
 
-# Database operations class for managing database tables and queries
+# Database operations class for managing database queries
 db_operations <- R6::R6Class(
   "Database Operations",
   public = list(
@@ -34,6 +32,9 @@ db_operations <- R6::R6Class(
     pool = NULL,
     
     initialize = function(pool, session_id) {
+      if (is.null(pool)) {
+        stop(private$format_message("Database pool cannot be NULL"))
+      }
       self$pool <- pool
       self$session_id <- session_id
     },
@@ -43,84 +44,50 @@ db_operations <- R6::R6Class(
         stop(private$format_message("Invalid token_table_name"))
       }
       
-      # Sanitize table name
       if (!grepl("^[a-zA-Z0-9_]+$", token_table_name)) {
         stop(private$format_message("Invalid table name format"))
       }
       
-      create_table_query <- sprintf("
-        CREATE TABLE IF NOT EXISTS %s (
-            id SERIAL PRIMARY KEY,
-            object TEXT,
-            token TEXT UNIQUE,
-            date_created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            date_updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-        );", token_table_name)
-      
-      create_function_query <- "
-        CREATE OR REPLACE FUNCTION update_date_updated_column()
-        RETURNS TRIGGER AS $$
-        BEGIN
-            NEW.date_updated = CURRENT_TIMESTAMP;
-            RETURN NEW;
-        END;
-        $$ language 'plpgsql';"
-      
-      # Separate queries for dropping and creating trigger
-      drop_trigger_query <- sprintf("
-        DROP TRIGGER IF EXISTS update_%s_date_updated ON %s;", 
-                                    token_table_name, token_table_name)
-      
-      create_trigger_query <- sprintf("
-        CREATE TRIGGER update_%s_date_updated
-            BEFORE UPDATE ON %s
-            FOR EACH ROW
-            EXECUTE FUNCTION update_date_updated_column();", 
+      self$execute_db_operation(function(conn) {
+        # Create table query
+        create_table_query <- sprintf("
+          CREATE TABLE IF NOT EXISTS %s (
+              id SERIAL PRIMARY KEY,
+              object TEXT UNIQUE,
+              token TEXT,
+              date_created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              date_updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );", token_table_name)
+        
+        # Create function query
+        create_function_query <- "
+          CREATE OR REPLACE FUNCTION update_date_updated_column()
+          RETURNS TRIGGER AS $$
+          BEGIN
+              NEW.date_updated = CURRENT_TIMESTAMP;
+              RETURN NEW;
+          END;
+          $$ language 'plpgsql';"
+        
+        # Trigger queries
+        drop_trigger_query <- sprintf("
+          DROP TRIGGER IF EXISTS update_%s_date_updated ON %s;", 
                                       token_table_name, token_table_name)
-      
-      tryCatch({
-        # Get a direct connection from the pool
-        conn <- pool::poolCheckout(self$pool)
         
-        # Ensure connection is valid
-        if (!DBI::dbIsValid(conn)) {
-          stop("Invalid database connection")
-        }
+        create_trigger_query <- sprintf("
+          CREATE TRIGGER update_%s_date_updated
+              BEFORE UPDATE ON %s
+              FOR EACH ROW
+              EXECUTE FUNCTION update_date_updated_column();", 
+                                        token_table_name, token_table_name)
         
-        # Start transaction
-        DBI::dbBegin(conn)
-        
-        # Execute queries in sequence
         DBI::dbExecute(conn, create_table_query)
-        private$log_message("Created table if it didn't exist")
-        
         DBI::dbExecute(conn, create_function_query)
-        private$log_message("Created update function")
-        
         DBI::dbExecute(conn, drop_trigger_query)
-        private$log_message("Dropped existing trigger if it existed")
-        
         DBI::dbExecute(conn, create_trigger_query)
-        private$log_message("Created trigger")
         
-        # Commit transaction
-        DBI::dbCommit(conn)
         private$log_message("Table tokens was created or already exists")
-        
-      }, error = function(e) {
-        # Rollback on error
-        if (exists("conn") && !is.null(conn) && DBI::dbIsValid(conn)) {
-          DBI::dbRollback(conn)
-        }
-        private$log_message(sprintf("An error occurred: %s", e$message))
-        stop(private$format_message(sprintf("Failed to create tokens table: %s", e$message)))
-        
-      }, finally = {
-        # Return connection to pool
-        if (exists("conn") && !is.null(conn)) {
-          pool::poolReturn(conn)
-        }
-      })
+      }, "Failed to create tokens table")
     },
     
     write_to_tokens_table = function(data, token_table_name) {
@@ -133,14 +100,7 @@ db_operations <- R6::R6Class(
         stop(private$format_message("Invalid data provided: must be a non-empty data frame"))
       }
       
-      tryCatch({
-        # Get a direct connection from the pool
-        conn <- pool::poolCheckout(self$pool)
-        
-        # Start transaction
-        DBI::dbBegin(conn)
-        
-        # Write data
+      self$execute_db_operation(function(conn) {
         DBI::dbWriteTable(
           conn,
           name = token_table_name,
@@ -148,25 +108,8 @@ db_operations <- R6::R6Class(
           append = TRUE,
           row.names = FALSE
         )
-        
-        # Commit transaction
-        DBI::dbCommit(conn)
         private$log_message("Successfully wrote to tokens table")
-        
-      }, error = function(e) {
-        # Rollback on error
-        if (exists("conn") && !is.null(conn) && DBI::dbIsValid(conn)) {
-          DBI::dbRollback(conn)
-        }
-        private$log_message(sprintf("An error occurred while writing to tokens table: %s", e$message))
-        stop(private$format_message(sprintf("Failed to write to tokens table: %s", e$message)))
-        
-      }, finally = {
-        # Return connection to pool
-        if (exists("conn") && !is.null(conn)) {
-          pool::poolReturn(conn)
-        }
-      })
+      }, "Failed to write to tokens table")
     },
     
     check_table_exists = function(table_name) {
@@ -174,80 +117,94 @@ db_operations <- R6::R6Class(
         stop(private$format_message("Invalid table_name"))
       }
       
-      tryCatch({
-        # Get a direct connection from the pool
-        conn <- pool::poolCheckout(self$pool)
-        
-        # Check if table exists
+      self$execute_db_operation(function(conn) {
         exists <- DBI::dbExistsTable(conn, table_name)
         private$log_message(sprintf("Table %s exists: %s", table_name, exists))
-        return(exists)
-        
-      }, error = function(e) {
-        private$log_message(sprintf("Error checking table %s: %s", table_name, e$message))
-        return(FALSE)
-        
-      }, finally = {
-        # Return connection to pool
-        if (exists("conn") && !is.null(conn)) {
-          pool::poolReturn(conn)
-        }
-      })
+        exists
+      }, sprintf("Error checking table %s", table_name))
     },
     
-    read_table = function(table_name) {
+    read_table = function(table_name = NULL,
+                          max_retries = 3,
+                          retry_timeout = .25,
+                          attempt = 1,
+                          last_error = NULL) {
       if (is.null(table_name) || !is.character(table_name) || length(table_name) != 1) {
         stop(private$format_message("Invalid 'table_name'. It must be a non-null, single-character string."))
       }
       
-      max_retries <- 3
-      attempt <- 1
-      result <- NULL
+
       
       while (attempt <= max_retries) {
         tryCatch({
-          # Get a direct connection from the pool
-          conn <- pool::poolCheckout(self$pool)
-          
-          # Start transaction
-          DBI::dbBegin(conn)
-          
-          # Execute query
-          query <- paste0("SELECT * FROM ", DBI::dbQuoteIdentifier(conn, table_name), ";")
-          result <- DBI::dbGetQuery(conn, query)
-          
-          # Commit transaction
-          DBI::dbCommit(conn)
+          result <- self$execute_db_operation(function(conn) {
+            table_quoted <- DBI::dbQuoteIdentifier(conn, table_name)
+            query <- sprintf("SELECT * FROM %s;", table_quoted)
+            DBI::dbGetQuery(conn, query)
+          }, sprintf("Failed to read table %s", table_name))
           
           private$log_message(sprintf("Successfully read '%s' table on attempt %d", table_name, attempt))
-          
-          # Exit loop on success
-          break
+          return(result)
           
         }, error = function(e) {
-          # Rollback on error
-          if (exists("conn") && !is.null(conn) && DBI::dbIsValid(conn)) {
-            DBI::dbRollback(conn)
-          }
-          private$log_message(sprintf("Attempt %d failed for '%s' table: %s", attempt, table_name, e$message))
+          last_error <- e
+          private$log_message(sprintf("Attempt %d failed for '%s' table: %s", 
+                                      attempt, table_name, e$message))
           
-        }, finally = {
-          # Return connection to pool
-          if (exists("conn") && !is.null(conn)) {
-            pool::poolReturn(conn)
+          if (attempt < max_retries) {
+            Sys.sleep(retry_timeout)
           }
         })
         
         attempt <- attempt + 1
-        Sys.sleep(1) # Optional: Brief delay before retrying
       }
       
-      if (is.null(result)) {
-        private$log_message(sprintf("Failed to read '%s' table after %d attempts", table_name, max_retries))
-        stop(private$format_message(sprintf("Could not read '%s' table after multiple attempts.", table_name)))
+      stop(private$format_message(sprintf(
+        "Could not read '%s' table after %d attempts. Last error: %s", 
+        table_name, max_retries, 
+        if (!is.null(last_error)) last_error$message else "Unknown error"
+      )))
+    },
+    
+    execute_db_operation = function(operation, error_message) {
+      if (is.null(self$pool)) {
+        stop(private$format_message("Database pool is not initialized"))
       }
       
-      return(result)
+      conn <- NULL
+      tryCatch({
+        conn <- pool::poolCheckout(self$pool)
+        if (is.null(conn) || !DBI::dbIsValid(conn)) {
+          stop("Failed to obtain valid database connection")
+        }
+        
+        DBI::dbBegin(conn)
+        result <- operation(conn)
+        DBI::dbCommit(conn)
+        
+        return(result)
+        
+      }, error = function(e) {
+        if (!is.null(conn) && DBI::dbIsValid(conn)) {
+          tryCatch({
+            DBI::dbRollback(conn)
+          }, error = function(rollback_error) {
+            private$log_message(sprintf("Rollback error: %s", rollback_error$message))
+          })
+        }
+        private$log_message(sprintf("%s: %s", error_message, e$message))
+        stop(private$format_message(sprintf("%s: %s", error_message, e$message)))
+        
+      }, finally = {
+        if (!is.null(conn)) {
+          tryCatch({
+            pool::poolReturn(conn)
+          }, error = function(return_error) {
+            private$log_message(sprintf("Error returning connection to pool: %s", 
+                                        return_error$message))
+          })
+        }
+      })
     }
   ),
   
