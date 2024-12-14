@@ -55,7 +55,7 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
 
 ## Setup Dynamic Fields
 
-1.  Run the queries in `setup_example.sql` to create the setup the `surveys`, `organization_location`, and `doctor_clinic` tables and insert the example data. In [Supabase](https://supabase.com/), you can run these queries by clicking "SQL Editor" in the sidebar.
+1.  Run the queries in `setup_example.sql` to create the setup the `surveys`, `config_pid`, `config_vacation`, and `config_doctor_clinic` tables and insert the example data. In [Supabase](https://supabase.com/), you can run these queries by clicking "SQL Editor" in the sidebar.
 
 2.  Optionally, create and manage your own dynamic fields table by mapping your fields to the `config_json` field in your `surveys` table as a JSON object:
 
