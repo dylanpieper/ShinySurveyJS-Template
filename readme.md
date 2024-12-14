@@ -4,19 +4,7 @@ A template for hosting multiple surveys using **Shiny**, **SurveyJS**, and **Pos
 
 ![](ShinySurveyJS.png)
 
-## Table of Contents
-
--   [Why SurveyJS?](#why-surveyjs)
--   [Key Features](#key-features)
--   [Get Started](#get-started)
--   [Setup Dynamic Fields](#dynamic-fields)
--   [Try Survey Examples](#survey-examples)
--   [Run Survey App](#run-survey-app)
--   [Use Any Database](#use-any-database)
--   [Follow The Roadmap](#follow-the-roadmap)
--   [Disclaimer](#disclaimer)
-
-## Why SurveyJS? {#why-surveyjs}
+## Why SurveyJS?
 
 SurveyJS is a powerful open-source JavaScript library for designing forms and questionnaires with a ecosystem that includes a [visual editor](https://surveyjs.io/create-free-survey). It offers complete backend flexibility, as its libraries work seamlessly with any combination of server and database technologies. The front-end natively supports branching and conditional logic, input validation, diverse question types, theme and css options, adding panels and pages, and supporting multiple languages.
 
@@ -24,7 +12,7 @@ There are a couple amazing Shiny-based survey tools like [surveydown](https://gi
 
 The current implementation of ShinySurveyJS uses the [SurveyJS jQuery Form Library](https://www.npmjs.com/package/survey-jquery).
 
-## Key Features {#key-features}
+## Key Features
 
 -   Multiple surveys in a single app
 -   URL query parameters use database tables to enable participant tracking and/or dynamically updating survey item choices (i.e., response options)
@@ -35,7 +23,7 @@ The current implementation of ShinySurveyJS uses the [SurveyJS jQuery Form Libra
 -   Visual survey creation using SurveyJS's [visual editor](https://surveyjs.io/create-free-survey)
 -   PostgreSQL cloud platforms like [Supabase](https://supabase.com/) offer free and paid database solutions
 
-## Get Started {#get-started}
+## Get Started
 
 1.  Clone the repository:
 
@@ -65,7 +53,7 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
                    "DBI", "RPostgres", "pool", "future", "promises", "DT"))
 ```
 
-## Setup Dynamic Fields {#dynamic-fields}
+## Setup Dynamic Fields
 
 1.  Run the queries in `setup_example.sql` to create the setup the `surveys`, `organization_location`, and `doctor_clinic` tables and insert the example data. In [Supabase](https://supabase.com/), you can run these queries by clicking "SQL Editor" in the sidebar.
 
@@ -81,7 +69,7 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
 
 Don't include spaces and special characters for the `group_col` value if you are using it in the query by using `"select_group": false`.
 
-## Try Survey Examples {#survey-examples}
+## Try Survey Examples
 
 These examples show how to use dynamic fields to track participants and/or update survey item choices using URL query parameters and database tables. The dynamic field server logic can be customized in `shiny/survey.R`. Remember that conditional logic can be handled by SurveyJS.
 
@@ -111,7 +99,7 @@ These examples show how to use dynamic fields to track participants and/or updat
 
     `/?survey=survey_product_feedback`
 
-## Run Survey App {#run-survey-app}
+## Run Survey App
 
 1.  Run the app:
 
@@ -131,11 +119,11 @@ Tokenization is used by default. Using tokens requires an additional table read,
         -   Without tokens (`token_active <- FALSE`): `/?survey=dynamic_person_id&doctor=James_Wilson`
         -   With tokens (`token_active <- TRUE`): `/?survey=SilverGalaxyEightHundredEightyOne&doctor=EightHundredTwelveGalaxyPlum`
 
-## Use Any Database {#use-any-database}
+## Use Any Database
 
 Easily change the database driver in `database.R` to use any database system compatible with the `DBI` package (see [list of backends](https://github.com/r-dbi/backends#readme)). The `RPostgres` package is used by default.
 
-## Follow The Roadmap {#follow-the-roadmap}
+## Follow The Roadmap
 
 -   ✔️ Friendly initialization UI
 -   ✔️ URL parameter tokenization
@@ -145,6 +133,6 @@ Easily change the database driver in `database.R` to use any database system com
 -   System to generate links for sharing surveys (admin login on base URL)
 -   App is managed in a container
 
-## Disclaimer {#disclaimer}
+## Disclaimer
 
 This application template was not built with comprehensive security features. It lacks robust authentication methods, user management, private data encryption, and protection against common vulnerabilities like SQL injection. It is not suitable for production use. Users must implement their own security measures and accept all associated risks. No warranty is provided.
