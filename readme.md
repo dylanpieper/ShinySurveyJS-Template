@@ -62,8 +62,8 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
     -   `table_name`: The table name for the dynamic field
     -   `group_col`: The column name that will be used to filter the dynamic fields
     -   `select_group`: A logical for using the group column to populate the rows as survey item choices in a JSON input field (true) or defining the group in the URL query for tracking (false)
-        -   `group_id_table_name`: If `"select_group": true`, the table name to locate the group ID column used in the query for participant tracking
-        -   `group_id_col`: If ``` "select_group":``true ```, the group ID column used in the query for participant tracking
+        -   `group_id_table_name`: If true, the table name to locate the group ID column used in the query for participant tracking
+        -   `group_id_col`: If true, the group ID column used in the query for participant tracking
     -   `choices_col`: The column name used to populate the survey item choices
     -   `surveys`: A list of survey names that the dynamic field applies to
 
@@ -91,11 +91,15 @@ These examples show how to use dynamic fields to track participants and/or updat
 
     `/?survey=survey_vacation_select_group`
 
-5.  `survey_person_id`: Assign person ID to doctors in URL query with a selection for the clinic they worked in that day
+5.  `survey_vacation_group_id`: Select group (country) and additional choices (city) from a database table with participant tracking
+
+    `/?survey=survey_vacation_select_group&pid=Sam_Altman`
+
+6.  `survey_person_id`: Assign person ID to doctors in URL query with a selection for the clinic they worked in that day
 
     `/?survey=survey_person_id&doctor=Sarah_Chen`
 
-6.  `survey_product_feedback`: Static survey with no dynamic fields
+7.  `survey_product_feedback`: Static survey with no dynamic fields
 
     `/?survey=survey_product_feedback`
 
@@ -116,7 +120,7 @@ Tokenization is used by default. Using tokens requires an additional table read,
         -   Without tokens (same as JSON file name): `/?survey=name`
         -   With tokens: `/?survey=token`
     -   Examples with dynamic fields:
-        -   Without tokens (`token_active <- FALSE`): `/?survey=dynamic_person_id&doctor=James_Wilson`
+        -   Without tokens (`token_active <- FALSE`): `/?survey=survey_person_id&doctor=James_Wilson`
         -   With tokens (`token_active <- TRUE`): `/?survey=SilverGalaxyEightHundredEightyOne&doctor=EightHundredTwelveGalaxyPlum`
 
 ## Use Any Database
