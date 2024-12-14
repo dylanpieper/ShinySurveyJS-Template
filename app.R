@@ -98,7 +98,7 @@ ui <- fluidPage(
     # Survey container
     div(
       id = "surveyContainer",
-      surveyUI("survey")
+      surveyUI("survey", theme = "defaultV2")
     ),
     
     # Survey data output
@@ -133,6 +133,7 @@ server <- function(input, output, session) {
                                    token_table_name, survey_table_name) {
     
     promise <- future({
+      Sys.sleep(runif(1, 0, 5))
       future_pool <- db_pool$new()
       future_ops <- db_operations$new(future_pool$pool, session_token)
       future_setup <- db_setup$new(future_ops, session_token)

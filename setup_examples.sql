@@ -15,123 +15,138 @@ CREATE TABLE surveys (
 -- Insert the configs
 INSERT INTO surveys (survey_name, config_json, json)
 VALUES 
-    ('dynamic_survey_1', 
+    ('survey_llm', 
     '{
-        "table_name": "organization_location",
-        "group_col": "organization",
+        "table_name": "config_pid",
+        "group_col": "pid",
         "select_group": false
     }'::json,
     '{
-        "title": "Dynamic Survey (Example 1)",
-        "description": "Case: Assign group in URL query, no selections for group or additional choices",
+        "title": "LLM Survey",
+        "description": "Assign participant ID in URL query with no selections for group or additional choices",
         "elements": [
             {
-                "type": "text",
-                "name": "name",
-                "title": "What is your name?",
+                "type": "radiogroup",
+                "name": "llm_provider",
+                "title": "Who is your favorite Large Language Model (LLM) provider?",
+                "choices": ["OpenAI", "Anthropic", "Google"],
+                "hasOther": true,
                 "isRequired": true
             }
         ]
     }'),
     
-    ('dynamic_survey_2', 
+    ('survey_vacation', 
     '{
-        "table_name": "organization_location",
-        "group_col": "organization",
+        "table_name": "config_vacation",
+        "group_col": "country",
         "select_group": true
     }'::json,
     '{
-        "title": "Dynamic Survey (Example 2)",
-        "description": "Case: Select group, no additional choices",
+        "title": "Vacation Survey",
+        "description": "Select group (country) from a database table with no additional choices or participant tracking",
         "elements": [
             {
-                "type": "text",
-                "name": "name",
-                "title": "What is your name?",
-                "isRequired": true
-            },
-            {
                 "type": "dropdown",
-                "name": "organization",
-                "title": "Select your organization:",
+                "name": "country",
+                "title": "If you could plan your dream vacation, which country would you visit?",
                 "choices": [],
                 "isRequired": true
             }
         ]
     }'),
     
-    ('dynamic_survey_3',
+    ('survey_vacation_query_group',
     '{
-        "table_name": "organization_location",
-        "group_col": "organization",
+        "table_name": "config_vacation",
+        "group_col": "country",
         "select_group": false,
-        "choices_col": "location"
+        "choices_col": "city"
     }'::json,
     '{
-        "title": "Dynamic Survey (Example 3)",
-        "description": "Case: Assign group in URL query, select from additional choices",
+        "title": "Vacation Survey",
+        "description": "Assign group (country) in URL query and select filtered choices (city) from a database table",
         "elements": [
             {
-                "type": "text",
-                "name": "name",
-                "title": "What is your name?",
-                "isRequired": true
-            },
-            {
-                "type": "dropdown",
-                "name": "location",
-                "title": "Select your location:",
+                "type": "ranking",
+                "name": "city",
+                "title": "Rank the cities you would like to visit on your next vacation:",
                 "choices": [],
                 "isRequired": true
             }
         ]
     }'),
     
-    ('dynamic_survey_4',
+    ('survey_vacation_select_group',
     '{
-        "table_name": "organization_location",
-        "group_col": "organization",
+        "table_name": "config_vacation",
+        "group_col": "country",
         "select_group": true,
-        "choices_col": "location"
+        "choices_col": "city"
     }'::json,
     '{
-        "title": "Dynamic Survey (Example 4)",
-        "description": "Case: Select group, select from additional choices",
+        "title": "Vacation Survey",
+        "description": "Select group (country) and additional choices (city) from a database table",
         "elements": [
             {
-                "type": "text",
-                "name": "name",
-                "title": "What is your name?",
-                "isRequired": true
-            },
-            {
-                "type": "radiogroup",
-                "name": "organization",
-                "title": "Select your organization:",
+                "type": "dropdown",
+                "name": "country",
+                "title": "If you could plan your dream vacation, which country would you visit?",
                 "choices": [],
                 "isRequired": true
             },
             {
-                "type": "dropdown",
-                "name": "location",
-                "title": "Select your location:",
+                "type": "ranking",
+                "name": "city",
+                "title": "Rank the cities you would like to visit:",
                 "choices": [],
                 "isRequired": true,
-                "visibleIf": "{organization} notempty"
+                "visibleIf": "{country} notempty"
             }
         ]
     }'),
     
-    ('dynamic_person_id',
+    ('survey_vacation_group_id',
     '{
-        "table_name": "doctor_clinic",
+        "table_name": "config_vacation",
+        "group_col": "country",
+        "select_group": true,
+        "group_id_table_name": "config_pid",
+        "group_id_col": "pid",
+        "choices_col": "city"
+    }'::json,
+    '{
+        "title": "Vacation Survey",
+        "description": "Select group (country) and additional choices (city) from a database table with participant tracking",
+        "elements": [
+            {
+                "type": "dropdown",
+                "name": "country",
+                "title": "If you could plan your dream vacation, which country would you visit?",
+                "choices": [],
+                "isRequired": true
+            },
+            {
+                "type": "ranking",
+                "name": "city",
+                "title": "Rank the cities you would like to visit:",
+                "choices": [],
+                "isRequired": true,
+                "visibleIf": "{country} notempty"
+            }
+        ]
+    }'),
+    
+    ('survey_person_id',
+    '{
+        "table_name": "config_doctor_clinic",
         "group_col": "doctor",
         "select_group": false,
         "choices_col": "clinic"
     }'::json,
     '{
         "title": "Person ID",
-        "description": "Case: Assign person ID to doctors in URL query with a selection for the clinic they work in",
+        "description": "Assign person ID to doctors in URL query with a selection for the clinic they worked in that day",
         "elements": [
             {
                 "type": "radiogroup",
@@ -156,6 +171,7 @@ VALUES
                 "type": "matrix",
                 "name": "symptoms",
                 "title": "Rate current symptoms",
+                "isRequired": true,
                 "columns": [
                     "None",
                     "Mild",
@@ -172,8 +188,9 @@ VALUES
                 "type": "checkbox",
                 "name": "interventions",
                 "title": "Interventions Used",
+                "isRequired": true,
                 "choices": [
-                    "CBT",
+                    "Narrative Therapy",
                     "Mindfulness",
                     "Crisis Management",
                     "Skills Training"
@@ -182,12 +199,14 @@ VALUES
             {
                 "type": "text",
                 "name": "notes",
-                "title": "Session Notes"
+                "title": "Session Notes",
+                "isRequired": true,
             },
             {
                 "type": "dropdown",
                 "name": "next_session",
                 "title": "Next Session",
+                "isRequired": true,
                 "choices": [
                     "1 week",
                     "2 weeks",
@@ -199,63 +218,260 @@ VALUES
         "widthMode": "responsive"
     }'),
     
-    ('static_survey', 
+    ('survey_product_feedback', 
     NULL,
     '{
-        "title": "Static Survey",
-        "pages": [
-            {
-                "name": "page1",
-                "elements": [
-                    {
-                        "type": "radiogroup",
-                        "name": "product_quality",
-                        "title": "What is your opinion on the quality of our product?",
-                        "choices": ["Excellent", "Good", "Fair", "Poor"]
-                    },
-                    {
-                        "type": "comment",
-                        "name": "suggestions",
-                        "title": "What would make our product better?"
-                    },
-                    {
-                        "type": "rating",
-                        "name": "product_satisfaction",
-                        "title": "How satisfied are you with the product?",
-                        "rateMin": 0,
-                        "rateMax": 5,
-                        "rateStep": 1
-                    },
-                    {
-                        "type": "dropdown",
-                        "name": "recommend_product",
-                        "title": "Would you recommend our product to your friends?",
-                        "choices": ["Definitely", "Maybe", "Not sure", "Never"]
-                    }
-                ]
-            }
-        ]
-    }');
+    "title": "Product Feedback Survey",
+    "description": "Static survey with no dynamic fields",
+    "completedHtml": "<h3>Thank you for your valuable feedback!</h3>",
+    "pages": [
+        {
+            "name": "satisfaction",
+            "title": "Product Satisfaction",
+            "description": "Please tell us about your overall experience with our product",
+            "elements": [
+                {
+                    "type": "rating",
+                    "name": "product_satisfaction",
+                    "title": "Overall Satisfaction",
+                    "description": "How satisfied are you with your experience using our product?",
+                    "rateMin": 1,
+                    "rateMax": 5,
+                    "rateStep": 1,
+                    "minRateDescription": "Very Dissatisfied",
+                    "maxRateDescription": "Very Satisfied",
+                    "isRequired": true
+                },
+                {
+                    "type": "rating",
+                    "name": "product_quality",
+                    "title": "Product Quality",
+                    "description": "How would you rate the overall quality of our product?",
+                    "rateMin": 1,
+                    "rateMax": 5,
+                    "rateStep": 1,
+                    "minRateDescription": "Poor Quality",
+                    "maxRateDescription": "Excellent Quality",
+                    "isRequired": true
+                },
+                {
+                    "type": "radiogroup",
+                    "name": "recommend_product",
+                    "title": "Likelihood to Recommend",
+                    "description": "How likely are you to recommend our product to others?",
+                    "choices": [
+                        {
+                            "value": "definitely",
+                            "text": "Definitely would recommend"
+                        },
+                        {
+                            "value": "probably",
+                            "text": "Probably would recommend"
+                        },
+                        {
+                            "value": "maybe",
+                            "text": "Might or might not recommend"
+                        },
+                        {
+                            "value": "probably_not",
+                            "text": "Probably would not recommend"
+                        },
+                        {
+                            "value": "definitely_not",
+                            "text": "Definitely would not recommend"
+                        }
+                    ],
+                    "isRequired": true
+                }
+            ]
+        },
+        {
+            "name": "feedback",
+            "title": "Detailed Feedback",
+            "description": "Please share your specific thoughts about the product",
+            "elements": [
+                {
+                    "type": "comment",
+                    "name": "strengths",
+                    "title": "Product Strengths",
+                    "description": "What aspects of the product do you like the most?",
+                    "placeholder": "Please share what you enjoy about our product...",
+                    "rows": 3
+                },
+                {
+                    "type": "comment",
+                    "name": "improvements",
+                    "title": "Suggested Improvements",
+                    "description": "What aspects of the product could be improved?",
+                    "placeholder": "Please share your suggestions for improvement...",
+                    "rows": 3
+                }
+            ]
+        }
+    ],
+    "showQuestionNumbers": "off",
+    "showProgressBar": "top",
+    "progressBarType": "questions"
+}');
 
 -- Create the tables for the dynamic survey examples
-CREATE TABLE organization_location (
+CREATE TABLE config_pid (
     id SERIAL PRIMARY KEY,
-    organization TEXT,
-    location TEXT,
+    pid TEXT,
     date_created TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO organization_location (organization, location) 
+INSERT INTO config_pid (pid) 
 VALUES 
-    ('Google', 'San Francisco, CA'),
-    ('Google', 'Boulder, CO'),
-    ('Google', 'Chicago, IL'),
-    ('Anthropic', 'San Francisco, CA'),
-    ('Anthropic', 'Seattle, WA'),
-    ('Anthropic', 'New York City, NY');
+    ('Sam_Altman'),
+    ('Dario_Amodei'),
+    ('Sundar_Pichai');
     
-CREATE TABLE doctor_clinic (
+CREATE TABLE config_vacation (
+    id SERIAL PRIMARY KEY,
+    country TEXT,
+    city TEXT,
+    date_created TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO config_vacation (country, city) VALUES
+    ('Argentina', 'Bariloche'),
+    ('Argentina', 'Buenos Aires'),
+    ('Argentina', 'Córdoba'),
+    ('Argentina', 'Mendoza'),
+    ('Australia', 'Brisbane'),
+    ('Australia', 'Melbourne'),
+    ('Australia', 'Sydney'),
+    ('Austria', 'Graz'),
+    ('Austria', 'Hallstatt'),
+    ('Austria', 'Innsbruck'),
+    ('Austria', 'Salzburg'),
+    ('Austria', 'Vienna'),
+    ('Belgium', 'Antwerp'),
+    ('Belgium', 'Bruges'),
+    ('Belgium', 'Brussels'),
+    ('Belgium', 'Ghent'),
+    ('Brazil', 'Florianópolis'),
+    ('Brazil', 'Manaus'),
+    ('Brazil', 'Rio de Janeiro'),
+    ('Brazil', 'Salvador'),
+    ('Brazil', 'São Paulo'),
+    ('Canada', 'Montreal'),
+    ('Canada', 'Toronto'),
+    ('Canada', 'Vancouver'),
+    ('China', 'Beijing'),
+    ('China', 'Hong Kong'),
+    ('China', 'Shanghai'),
+    ('Colombia', 'Bogotá'),
+    ('Colombia', 'Cali'),
+    ('Colombia', 'Cartagena'),
+    ('Colombia', 'Medellín'),
+    ('Croatia', 'Dubrovnik'),
+    ('Croatia', 'Hvar'),
+    ('Croatia', 'Split'),
+    ('Croatia', 'Zagreb'),
+    ('Czech_Republic', 'Cesky Krumlov'),
+    ('Czech_Republic', 'Karlovy Vary'),
+    ('Czech_Republic', 'Prague'),
+    ('Denmark', 'Aarhus'),
+    ('Denmark', 'Copenhagen'),
+    ('Denmark', 'Odense'),
+    ('Ecuador', 'Cuenca'),
+    ('Ecuador', 'Guayaquil'),
+    ('Ecuador', 'Quito'),
+    ('France', 'Bordeaux'),
+    ('France', 'Lyon'),
+    ('France', 'Marseille'),
+    ('France', 'Nice'),
+    ('France', 'Paris'),
+    ('Germany', 'Berlin'),
+    ('Germany', 'Cologne'),
+    ('Germany', 'Dresden'),
+    ('Germany', 'Frankfurt'),
+    ('Germany', 'Hamburg'),
+    ('Germany', 'Heidelberg'),
+    ('Germany', 'Leipzig'),
+    ('Germany', 'Munich'),
+    ('Germany', 'Nuremberg'),
+    ('Germany', 'Rothenburg'),
+    ('Germany', 'Stuttgart'),
+    ('Greece', 'Athens'),
+    ('Greece', 'Mykonos'),
+    ('Greece', 'Rhodes'),
+    ('Greece', 'Santorini'),
+    ('Greece', 'Thessaloniki'),
+    ('Ireland', 'Cork'),
+    ('Ireland', 'Dublin'),
+    ('Ireland', 'Galway'),
+    ('Ireland', 'Kilkenny'),
+    ('Italy', 'Florence'),
+    ('Italy', 'Milan'),
+    ('Italy', 'Naples'),
+    ('Italy', 'Rome'),
+    ('Italy', 'Venice'),
+    ('Japan', 'Kyoto'),
+    ('Japan', 'Osaka'),
+    ('Japan', 'Tokyo'),
+    ('Mexico', 'Cabo San Lucas'),
+    ('Mexico', 'Cancun'),
+    ('Mexico', 'Mexico City'),
+    ('Netherlands', 'Amsterdam'),
+    ('Netherlands', 'Rotterdam'),
+    ('Netherlands', 'The Hague'),
+    ('Netherlands', 'Utrecht'),
+    ('New_Zealand', 'Auckland'),
+    ('New_Zealand', 'Queenstown'),
+    ('New_Zealand', 'Wellington'),
+    ('Norway', 'Bergen'),
+    ('Norway', 'Oslo'),
+    ('Norway', 'Tromsø'),
+    ('Peru', 'Arequipa'),
+    ('Peru', 'Cusco'),
+    ('Peru', 'Lima'),
+    ('Poland', 'Gdansk'),
+    ('Poland', 'Krakow'),
+    ('Poland', 'Warsaw'),
+    ('Poland', 'Wroclaw'),
+    ('Portugal', 'Faro'),
+    ('Portugal', 'Lisbon'),
+    ('Portugal', 'Madeira'),
+    ('Portugal', 'Porto'),
+    ('Spain', 'Barcelona'),
+    ('Spain', 'Madrid'),
+    ('Spain', 'Seville'),
+    ('Sweden', 'Gothenburg'),
+    ('Sweden', 'Malmö'),
+    ('Sweden', 'Stockholm'),
+    ('Switzerland', 'Bern'),
+    ('Switzerland', 'Geneva'),
+    ('Switzerland', 'Interlaken'),
+    ('Switzerland', 'Lausanne'),
+    ('Switzerland', 'Lucerne'),
+    ('Switzerland', 'St. Moritz'),
+    ('Switzerland', 'Zermatt'),
+    ('Switzerland', 'Zurich'),
+    ('Thailand', 'Bangkok'),
+    ('Thailand', 'Chiang Mai'),
+    ('Thailand', 'Phuket'),
+    ('United_Kingdom', 'Edinburgh'),
+    ('United_Kingdom', 'London'),
+    ('United_Kingdom', 'Manchester'),
+    ('Uruguay', 'Colonia del Sacramento'),
+    ('Uruguay', 'Montevideo'),
+    ('Uruguay', 'Punta del Este'),
+    ('United_States', 'Boston'),
+    ('United_States', 'Chicago'),
+    ('United_States', 'Las Vegas'),
+    ('United_States', 'Los Angeles'),
+    ('United_States', 'Miami'),
+    ('United_States', 'New York'),
+    ('United_States', 'Orlando'),
+    ('United_States', 'San Francisco'),
+    ('United_States', 'Seattle');
+    
+CREATE TABLE config_doctor_clinic (
     id SERIAL PRIMARY KEY,
     doctor TEXT,
     clinic TEXT,
@@ -263,7 +479,7 @@ CREATE TABLE doctor_clinic (
     updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
    
-INSERT INTO doctor_clinic (doctor, clinic) VALUES
+INSERT INTO config_doctor_clinic (doctor, clinic) VALUES
     ('Sarah_Chen', 'Downtown Medical'),
     ('Sarah_Chen', 'Westside Health'),
     ('James_Wilson', 'Downtown Medical'),
@@ -287,11 +503,16 @@ CREATE TRIGGER update_timestamp_trigger
     EXECUTE FUNCTION update_timestamp();
 
 CREATE TRIGGER update_timestamp_trigger
-    BEFORE UPDATE ON organization_location
+    BEFORE UPDATE ON config_pid
+    FOR EACH ROW
+    EXECUTE FUNCTION update_timestamp();
+    
+CREATE TRIGGER update_timestamp_trigger
+    BEFORE UPDATE ON config_vacation
     FOR EACH ROW
     EXECUTE FUNCTION update_timestamp();
 
 CREATE TRIGGER update_timestamp_trigger
-    BEFORE UPDATE ON doctor_clinic
+    BEFORE UPDATE ON config_doctor_clinic
     FOR EACH ROW
     EXECUTE FUNCTION update_timestamp();

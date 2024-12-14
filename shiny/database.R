@@ -143,7 +143,7 @@ db_operations <- R6::R6Class(
             DBI::dbGetQuery(conn, query)
           }, sprintf("Failed to read table %s", table_name))
           
-          private$log_message(sprintf("Successfully read '%s' table on attempt %d", table_name, attempt))
+          private$log_message(sprintf("Successfully read '%s' table (attempt %d)", table_name, attempt))
           return(result)
           
         }, error = function(e) {
@@ -426,7 +426,7 @@ db_setup <- R6::R6Class(
       # Write to database
       if (nrow(new_entries) > 0) {
         self$db_ops$write_to_tokens_table(new_entries, token_table_name)
-        private$log_message(sprintf("Added %d new entries to tokens table", nrow(new_entries)))
+        private$log_message(sprintf("Added new entries to tokens table (n = %d)", nrow(new_entries)))
         
         # Update token_table with new entries
         token_table <- rbind(token_table, new_entries)

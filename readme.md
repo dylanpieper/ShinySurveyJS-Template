@@ -4,13 +4,27 @@ A template for hosting multiple surveys using **Shiny**, **SurveyJS**, and **Pos
 
 ![](ShinySurveyJS.png)
 
-## Why SurveyJS?
+## Table of Contents
+
+-   [Why SurveyJS?](#why-surveyjs)
+-   [Key Features](#key-features)
+-   [Get Started](#get-started)
+-   [Setup Dynamic Fields](#dynamic-fields)
+-   [Try Survey Examples](#survey-examples)
+-   [Run Survey App](#run-survey-app)
+-   [Use Any Database](#use-any-database)
+-   [Follow The Roadmap](#follow-the-roadmap)
+-   [Disclaimer](#disclaimer)
+
+## Why SurveyJS? {#why-surveyjs}
 
 SurveyJS is a powerful open-source JavaScript library for designing forms and questionnaires with a ecosystem that includes a [visual editor](https://surveyjs.io/create-free-survey). It offers complete backend flexibility, as its libraries work seamlessly with any combination of server and database technologies. The front-end natively supports branching and conditional logic, input validation, diverse question types, theme and css options, adding panels and pages, and supporting multiple languages.
 
 There are a couple amazing Shiny-based survey tools like [surveydown](https://github.com/surveydown-dev/surveydown) or [shinysurveys](https://github.com/jdtrat/shinysurveys). However, these tools rely on Shiny for building the user interface (UI) and are limited to hosting a single survey per server. Because SurveyJS manages most of the UI components, it simplifies the development of a Shiny codebase that supports abstraction, such as hosting multiple surveys on the same server with unique dynamic field configurations.
 
-## Key Features
+The current implementation of ShinySurveyJS uses the [SurveyJS jQuery Form Library](https://www.npmjs.com/package/survey-jquery).
+
+## Key Features {#key-features}
 
 -   Multiple surveys in a single app
 -   URL query parameters use database tables to enable participant tracking and/or dynamically updating survey item choices (i.e., response options)
@@ -21,7 +35,7 @@ There are a couple amazing Shiny-based survey tools like [surveydown](https://gi
 -   Visual survey creation using SurveyJS's [visual editor](https://surveyjs.io/create-free-survey)
 -   PostgreSQL cloud platforms like [Supabase](https://supabase.com/) offer free and paid database solutions
 
-## Get Started
+## Get Started {#get-started}
 
 1.  Clone the repository:
 
@@ -29,7 +43,7 @@ There are a couple amazing Shiny-based survey tools like [surveydown](https://gi
 git clone https://github.com/dylanpieper/ShinySurveyJS.git
 ```
 
-2.  Create a `.env` file, modifying the following template with your database credentials. In Supabase, you can find project connect details by clicking "Connect" in the top bar.
+2.  Create a `.env` file, modifying the following template with your database credentials. In [Supabase](https://supabase.com/), you can find project connect details by clicking "Connect" in the top bar.
 
 ``` env
 DB_HOST=aws-0-us-east-2.pooler.supabase.com
@@ -51,31 +65,53 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
                    "DBI", "RPostgres", "pool", "future", "promises", "DT"))
 ```
 
-## Setup Dynamic Fields
+## Setup Dynamic Fields {#dynamic-fields}
 
-1.  Run the queries in `setup_example.sql` to create the setup the `surveys`, `organization_location`, and `doctor_clinic` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
+1.  Run the queries in `setup_example.sql` to create the setup the `surveys`, `organization_location`, and `doctor_clinic` tables and insert the example data. In [Supabase](https://supabase.com/), you can run these queries by clicking "SQL Editor" in the sidebar.
 
 2.  Optionally, create and manage your own dynamic fields table by mapping your fields to the `config_json` field in your `surveys` table as a JSON object:
 
     -   `table_name`: The table name for the dynamic field
     -   `group_col`: The column name that will be used to filter the dynamic fields
-    -   `select_group`: The group either populates the rows as choices in a JSON input field or is defined in the URL query for individual tracking
+    -   `select_group`: A logical for using the group column to populate the rows as survey item choices in a JSON input field (true) or defining the group in the URL query for tracking (false)
+        -   `group_id_table_name`: If `"select_group": true`, the table name to locate the group ID column used in the query for participant tracking
+        -   `group_id_col`: If ``` "select_group":``true ```, the group ID column used in the query for participant tracking
     -   `choices_col`: The column name used to populate the survey item choices
     -   `surveys`: A list of survey names that the dynamic field applies to
 
-Don't use spaces and special characters for the `group_col` value if you are using `"select_group": false`.
+Don't include spaces and special characters for the `group_col` value if you are using it in the query by using `"select_group": false`.
 
-## Survey Examples
+## Try Survey Examples {#survey-examples}
 
-These examples demonstrate how to use dynamic fields to track individuals and/or update survey item choices based on the URL query parameters. This functionality can be customized in `shiny/survey.R` if you want to add additional layers of logic.
+These examples show how to use dynamic fields to track participants and/or update survey item choices using URL query parameters and database tables. The dynamic field server logic can be customized in `shiny/survey.R`. Remember that conditional logic can be handled by SurveyJS.
 
-1.  `dynamic_survey_1`: Assign group in URL query, no selections for group or additional choices
-2.  `dynamic_survey_2`: Select group, no additional choices
-3.  `dynamic_survey_3`: Assign group in URL query, select from additional choices
-4.  `dynamic_survey_4`: Select group, select from additional choices
-5.  `dynamic_person_id`: Assign person ID to doctors in URL query with a selection for the clinic they work in
+1.  `survey_llm`: Assign participant ID in URL query with no selections for group or additional choices
 
-## Run Survey App
+    `/?survey=survey_llm&pid=Sam_Altman`
+
+    In this case, you are not allowed to enter an invalid `pid` to avoid user manipulation
+
+2.  `survey_vacation`: Select group (country) from a database table with no additional choices or participant tracking
+
+    `/?survey=survey_vacation`
+
+3.  `survey_vacation_query_group`: Assign group (country) in URL query and select filtered choices (city) from a database table
+
+    `/?survey=survey_vacation_query_group&country=USA`
+
+4.  `survey_vacation_select_group`: Select group (country) and additional choices (city) from a database table
+
+    `/?survey=survey_vacation_select_group`
+
+5.  `survey_person_id`: Assign person ID to doctors in URL query with a selection for the clinic they worked in that day
+
+    `/?survey=survey_person_id&doctor=Sarah_Chen`
+
+6.  `survey_product_feedback`: Static survey with no dynamic fields
+
+    `/?survey=survey_product_feedback`
+
+## Run Survey App {#run-survey-app}
 
 1.  Run the app:
 
@@ -95,11 +131,11 @@ Tokenization is used by default. Using tokens requires an additional table read,
         -   Without tokens (`token_active <- FALSE`): `/?survey=dynamic_person_id&doctor=James_Wilson`
         -   With tokens (`token_active <- TRUE`): `/?survey=SilverGalaxyEightHundredEightyOne&doctor=EightHundredTwelveGalaxyPlum`
 
-## Use Any Database
+## Use Any Database {#use-any-database}
 
 Easily change the database driver in `database.R` to use any database system compatible with the `DBI` package (see [list of backends](https://github.com/r-dbi/backends#readme)). The `RPostgres` package is used by default.
 
-## Follow The Roadmap
+## Follow The Roadmap {#follow-the-roadmap}
 
 -   ✔️ Friendly initialization UI
 -   ✔️ URL parameter tokenization
@@ -109,6 +145,6 @@ Easily change the database driver in `database.R` to use any database system com
 -   System to generate links for sharing surveys (admin login on base URL)
 -   App is managed in a container
 
-## Disclaimer
+## Disclaimer {#disclaimer}
 
 This application template was not built with comprehensive security features. It lacks robust authentication methods, user management, private data encryption, and protection against common vulnerabilities like SQL injection. It is not suitable for production use. Users must implement their own security measures and accept all associated risks. No warranty is provided.
