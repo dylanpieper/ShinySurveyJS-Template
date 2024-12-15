@@ -145,7 +145,7 @@ VALUES
         "choices_col": "clinic"
     }'::json,
     '{
-        "title": "Person ID",
+        "title": "Person ID Survey",
         "description": "Assign person ID to doctors in URL query with a selection for the clinic they worked in that day",
         "elements": [
             {

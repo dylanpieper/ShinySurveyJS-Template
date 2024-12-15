@@ -69,39 +69,53 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
 
 Don't include spaces and special characters for the `group_col` value if you are using it in the query by using `"select_group": false`.
 
-## Try Survey Examples
+# Try Example Surveys
 
 These examples show how to use dynamic fields to track participants and/or update survey item choices using URL query parameters and database tables. The dynamic field server logic can be customized in `shiny/survey.R`. Remember that conditional logic can be handled by SurveyJS.
 
-1.  `survey_llm`: Assign participant ID in URL query with no selections for group or additional choices
+1.  **survey_llm**: Assign participant ID in URL query with no selections for group or additional choices
 
-    `/?survey=survey_llm&pid=Sam_Altman`
+    ```         
+    /?survey=survey_llm&pid=Sam_Altman
+    ```
 
     In this case, you are not allowed to enter an invalid `pid` to avoid user manipulation
 
-2.  `survey_vacation`: Select group (country) from a database table with no additional choices or participant tracking
+2.  **survey_vacation**: Select group (country) from a database table with no additional choices or participant tracking
 
-    `/?survey=survey_vacation`
+    ```         
+    /?survey=survey_vacation
+    ```
 
-3.  `survey_vacation_query_group`: Assign group (country) in URL query and select filtered choices (city) from a database table
+3.  **survey_vacation_query_group**: Assign group (country) in URL query and select filtered choices (city) from a database table
 
-    `/?survey=survey_vacation_query_group&country=USA`
+    ```         
+    /?survey=survey_vacation_query_group&country=USA
+    ```
 
-4.  `survey_vacation_select_group`: Select group (country) and additional choices (city) from a database table
+4.  **survey_vacation_select_group**: Select group (country) and additional choices (city) from a database table
 
-    `/?survey=survey_vacation_select_group`
+    ```         
+    /?survey=survey_vacation_select_group
+    ```
 
-5.  `survey_vacation_group_id`: Select group (country) and additional choices (city) from a database table with participant tracking
+5.  **survey_vacation_group_id**: Select group (country) and additional choices (city) from a database table with participant tracking
 
-    `/?survey=survey_vacation_select_group&pid=Sam_Altman`
+    ```         
+    /?survey=survey_vacation_select_group&pid=Sam_Altman
+    ```
 
-6.  `survey_person_id`: Assign person ID to doctors in URL query with a selection for the clinic they worked in that day
+6.  **survey_person_id**: Assign person ID to doctors in URL query with a selection for the clinic they worked in that day
 
-    `/?survey=survey_person_id&doctor=Sarah_Chen`
+    ```         
+    /?survey=survey_person_id&doctor=Sarah_Chen
+    ```
 
-7.  `survey_product_feedback`: Static survey with no dynamic fields
+7.  **survey_product_feedback**: Static survey with no dynamic fields
 
-    `/?survey=survey_product_feedback`
+    ```         
+    /?survey=survey_product_feedback
+    ```
 
 ## Run Survey App
 

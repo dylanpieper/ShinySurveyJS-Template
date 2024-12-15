@@ -327,23 +327,25 @@ db_setup <- R6::R6Class(
       }
       
       # Helper function to extract groups from config
-      get_groups_from_config <- function(config_json) {
+      get_groups_from_config <- function(config_json, group_id_table_name = FALSE) {
         if (is.null(config_json) || config_json == "" || is.na(config_json)) {
           return(character(0))
         }
         
         tryCatch({
           config <- jsonlite::fromJSON(config_json)
+          table_logic <- if (!group_id_table_name) config$table_name else config$group_id_table_name
+          group_logic <- if (!group_id_table_name) config$group_col else config$group_id_col
           if (!is.null(config) && 
               is.list(config) && 
-              !is.null(config$table_name) && 
-              !is.null(config$group_col)) {
+              !is.null(table_logic) && 
+              !is.null(group_logic)) {
             
-            table_data <- read_cached_table(config$table_name)
+            table_data <- read_cached_table(table_logic)
             if (!is.null(table_data) && 
                 is.data.frame(table_data) && 
-                config$group_col %in% names(table_data)) {
-              return(unique(table_data[[config$group_col]]))
+                group_logic %in% names(table_data)) {
+              return(unique(table_data[[group_logic]]))
             }
           }
           return(character(0))
@@ -353,13 +355,18 @@ db_setup <- R6::R6Class(
         })
       }
       
-      # Extract all groups from valid configs
+      # Extract all groups and their IDs from valid configs
       all_groups <- tryCatch({
         valid_configs <- surveys_data$config_json[!is.na(surveys_data$config_json) & 
                                                     surveys_data$config_json != ""]
         
-        groups <- lapply(valid_configs, get_groups_from_config)
-        unique_groups <- unique(unlist(groups))
+        # Extract groups and group IDs
+        groups_and_ids <- lapply(valid_configs, function(config) {
+          c(get_groups_from_config(config), 
+            get_groups_from_config(config, group_id_table_name = TRUE))
+        })
+        
+        unique_groups <- unique(unlist(groups_and_ids))
         unique_groups[!is.na(unique_groups)]
       }, error = function(e) {
         private$log_message(sprintf("Error processing survey configurations: %s", e$message))
