@@ -69,7 +69,7 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
 
 Don't include spaces and special characters for the `group_col` value if you are using it in the query by using `"select_group": false`.
 
-# Try Example Surveys
+## Try Example Surveys
 
 These examples show how to use dynamic fields to track participants and/or update survey item choices using URL query parameters and database tables. The dynamic field server logic can be customized in `shiny/survey.R`. Remember that conditional logic can be handled by SurveyJS.
 
