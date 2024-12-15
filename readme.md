@@ -55,6 +55,8 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
 
 ## Setup Dynamic Fields
 
+In this context, dynamic fields are defined as Shiny server operations that track participants or update survey item choices using the URL query and database tables. The `config_json` field in the `surveys` table is used to store the dynamic field configuration as a JSON object. Remember that conditional logic can be handled by SurveyJS. 
+
 1.  Run the queries in `setup_example.sql` to create the setup the `surveys`, `config_pid`, `config_vacation`, and `config_doctor_clinic` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
 
 2.  Optionally, create and manage your own dynamic fields table by mapping your fields to the `config_json` field in your `surveys` table as a JSON object:
@@ -71,7 +73,7 @@ Don't include spaces and special characters for the `group_col` value if you are
 
 ## Try Example Surveys
 
-These examples show how to use dynamic fields to track participants and/or update survey item choices using URL query parameters and database tables. The dynamic field server logic can be customized in `shiny/survey.R`. Remember that conditional logic can be handled by SurveyJS.
+These examples show how to use dynamic fields to track participants and/or update survey item choices using URL query parameters and database tables. The dynamic field server logic can be customized in `shiny/survey.R`.
 
 1.  **survey_llm**: Assign participant ID in URL query with no selections for group or additional choices
 
