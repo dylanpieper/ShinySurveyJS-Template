@@ -6,7 +6,7 @@ A template for hosting multiple surveys using **Shiny**, **SurveyJS**, and **Pos
 
 ## Why SurveyJS?
 
-SurveyJS is a powerful open-source JavaScript library for designing forms and questionnaires with a ecosystem that includes a [visual editor](https://surveyjs.io/create-free-survey). It offers complete backend flexibility, as its libraries work seamlessly with any combination of server and database technologies. The front-end natively supports branching and conditional logic, input validation, diverse question types, theme and css options, adding panels and pages, and supporting multiple languages.
+[SurveyJS](https://surveyjs.io/) is a powerful open-source JavaScript library for designing forms and questionnaires with a ecosystem that includes a [visual editor](https://surveyjs.io/create-free-survey). It offers complete backend flexibility, as its libraries work seamlessly with any combination of server and database technologies. The front-end natively supports branching and conditional logic, input validation, diverse question types, theme and css options, adding panels and pages, and supporting multiple languages.
 
 There are a couple amazing Shiny-based survey tools like [surveydown](https://github.com/surveydown-dev/surveydown) or [shinysurveys](https://github.com/jdtrat/shinysurveys). However, these tools rely on Shiny for building the user interface (UI) and are limited to hosting a single survey per server. Because SurveyJS manages most of the UI components, it simplifies the development of a Shiny codebase that supports abstraction, such as hosting multiple surveys on the same server with unique dynamic field configurations.
 
@@ -31,7 +31,7 @@ The current implementation of ShinySurveyJS uses the [SurveyJS jQuery Form Libra
 git clone https://github.com/dylanpieper/ShinySurveyJS.git
 ```
 
-2.  Create a `.env` file, modifying the following template with your database credentials. In [Supabase](https://supabase.com/), you can find project connect details by clicking "Connect" in the top bar.
+2.  Create a `.env` file, modifying the following template with your database credentials. In Supabase, you can find project connect details by clicking "Connect" in the top bar.
 
 ``` env
 DB_HOST=aws-0-us-east-2.pooler.supabase.com
@@ -55,7 +55,7 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
 
 ## Setup Dynamic Fields
 
-1.  Run the queries in `setup_example.sql` to create the setup the `surveys`, `config_pid`, `config_vacation`, and `config_doctor_clinic` tables and insert the example data. In [Supabase](https://supabase.com/), you can run these queries by clicking "SQL Editor" in the sidebar.
+1.  Run the queries in `setup_example.sql` to create the setup the `surveys`, `config_pid`, `config_vacation`, and `config_doctor_clinic` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
 
 2.  Optionally, create and manage your own dynamic fields table by mapping your fields to the `config_json` field in your `surveys` table as a JSON object:
 
