@@ -105,7 +105,7 @@ These examples show how to use dynamic fields to track participants and/or updat
     /?survey=survey_llm&pid=Sam_Altman
     ```
 
-    -   Use SurveyJS's curly bracket notation with a hidden `pid` field in the json to reactively display the URL query parameters in the UI
+    -   Use SurveyJS's curly brackets with a hidden `pid` field in the json to reactively display the URL query parameters in the UI
 
     -   In this case, you are not allowed to enter an invalid `pid` to avoid user manipulation
 
@@ -150,7 +150,7 @@ These examples show how to use dynamic fields to track participants and/or updat
     ```         
     /?survey=survey_product_feedback
     ```
-    
+
 9.  **survey_staged_json**: Static demographic survey with field choices from a staged JSON table
 
     ```         
@@ -167,7 +167,11 @@ runApp()
 
 If the `tokens` table does not exist yet, the app will automatically create it. The app will also generate tokens for each survey and store them in the database.
 
+To prevent user load, the asynchronous worker is randomly assigned a time delay between 1 and 10 seconds before running. The worker runs in the background when the app is initialized and will not interfere with the user experience.
+
 Tokenization is used by default. Using tokens requires an additional table read, making it a slower process. Tokens are generated as a background task of the app using parallelization. If new tokens are created, users can access them on the next page load after the process runs. You can customize the tokenization algorithm in `shiny/tokens.R`.
+
+The tokenization setup process is parallelized to generate tokens for each survey in the database. The `tokens` table is used to store the tokens and survey names. The `token_active` field in the `.env` file is used to enable or disable tokenization. The `token_table_name` field in the `.env` file is used to define the table name for the tokens.
 
 2.  Access survey with URL query parameters:
     -   Generic:
