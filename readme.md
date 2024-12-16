@@ -69,7 +69,7 @@ In this context, dynamic fields are defined as Shiny server operations that trac
     -   `choices_col`: The column name used to populate the survey item choices
     -   `surveys`: A list of survey names that the dynamic field applies to
 
-Don't include spaces and special characters for the `group_col` value if you are using it in the query by using `"select_group": false`.
+Don't include spaces and special characters for the `group_col` or `group_id_col` value if you use them in the URL query. The app will automatically remove underscores when storing the data.
 
 ## Try Example Surveys
 
