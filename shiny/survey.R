@@ -38,6 +38,44 @@ surveyServer <- function(input = NULL,
     display_data = NULL          # Processed data for display
   )
   
+  # Helper function to check survey availability and hide and show messages
+  check_survey_availability <- function(survey_record) {
+    if (is.null(survey_record)) return(FALSE)
+    
+    # Check if survey is active
+    if (!isTRUE(survey_record$active)) {
+      warning(sprintf("[Session %s] Survey is inactive", session_id))
+      hide_and_show_message("waitingMessage", "inactiveSurveyMessage")
+      return(FALSE)
+    }
+    
+    current_time <- Sys.time()
+    
+    # Check start date only if it's not NULL and not NA
+    if (!is.null(survey_record$start_date) && !is.na(survey_record$start_date)) {
+      start_date <- as.POSIXct(survey_record$start_date)
+      if (!is.na(start_date) && current_time < start_date) {
+        warning(sprintf("[Session %s] Survey hasn't started yet. Starts: %s", 
+                        session_id, format(start_date)))
+        hide_and_show_message("waitingMessage", "surveyNotStartedMessage")
+        return(FALSE)
+      }
+    }
+    
+    # Check end date only if it's not NULL and not NA
+    if (!is.null(survey_record$end_date) && !is.na(survey_record$end_date)) {
+      end_date <- as.POSIXct(survey_record$end_date)
+      if (!is.na(end_date) && current_time > end_date) {
+        warning(sprintf("[Session %s] Survey has ended. Ended: %s", 
+                        session_id, format(end_date)))
+        hide_and_show_message("waitingMessage", "surveyEndedMessage")
+        return(FALSE)
+      }
+    }
+    
+    return(TRUE)
+  }
+  
   # Observe token table changes
   observe({
     if (is.function(token_table)) {
@@ -184,7 +222,7 @@ surveyServer <- function(input = NULL,
     # Validate group value exists in table
     if (!group_val %in% table_data[[config$group_col]]) {
       warning(sprintf("[Session %s] Invalid group value provided: %s", session_id, group_val))
-      hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
+      hide_and_show_message("waitingMessage", "invalidGroupIdMessage")
       return(NULL)
     }
     
@@ -292,6 +330,10 @@ surveyServer <- function(input = NULL,
       warning(sprintf("[Session %s] Survey not found in database: %s", 
                       session_id, survey_name))
       hide_and_show_message("waitingMessage", "surveyNotFoundMessage")
+      return()
+    }
+    
+    if (!check_survey_availability(survey_record)) {
       return()
     }
     
@@ -515,6 +557,24 @@ surveyServer <- function(input = NULL,
     
     # Add session ID to data
     data$session_id <- session_id
+    
+    # Get IP address from headers only if they exist
+    ip <- NULL
+    request <- session$request
+    
+    if (!is.null(request)) {
+      ip <- if (!is.null(request$HTTP_X_FORWARDED_FOR)) {
+        request$HTTP_X_FORWARDED_FOR
+      } else if (!is.null(request$HTTP_X_REAL_IP)) {
+        request$HTTP_X_REAL_IP
+      } else if (!is.null(request$REMOTE_ADDR)) {
+        request$REMOTE_ADDR
+      }
+      
+      if (!is.null(ip)) {
+        data$ip_address <- ip
+      }
+    }
     
     # Add group ID if available
     if (!is.null(rv$group_id) && !is.null(rv$dynamic_config$group_id_col)) {

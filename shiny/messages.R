@@ -92,6 +92,24 @@ messageUI <- function() {
       class = "message-container",
       style = "display: none;",
       div(class = "error-message", "❌ Invalid Group ID")
+    ),
+    div(
+      id = "inactiveSurveyMessage",
+      class = "message-container",
+      style = "display: none;",
+      div(class = "error-message", "⏰ Inactive Survey")
+    ),
+    div(
+      id = "surveyNotStartedMessage",
+      class = "message-container",
+      style = "display: none;",
+      div(class = "error-message", "⏰ Survey Not Started")
+    ),
+    div(
+      id = "surveyEndedMessage",
+      class = "message-container",
+      style = "display: none;",
+      div(class = "error-message", "⏰ Survey Ended")
     )
   )
 }
