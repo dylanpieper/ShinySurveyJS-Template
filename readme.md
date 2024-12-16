@@ -167,11 +167,11 @@ runApp()
 
 If the `tokens` table does not exist yet, the app will automatically create it. The app will also generate tokens for each survey and store them in the database.
 
-To prevent user load, the asynchronous worker is randomly assigned a time delay between 1 and 10 seconds before running. The worker runs in the background when the app is initialized and will not interfere with the user experience.
+To prevent user load, the asynchronous setup process (which runs independently from the main application) is randomly assigned a time delay between 1 and 10 seconds before running. The worker runs in the background when the app is initialized and will not interfere with the user experience, similar to how a background download continues while you browse other websites.
 
-Tokenization is used by default. Using tokens requires an additional table read, making it a slower process. Tokens are generated as a background task of the app using parallelization. If new tokens are created, users can access them on the next page load after the process runs. You can customize the tokenization algorithm in `shiny/tokens.R`.
+Tokenization (a security process that replaces sensitive data with non-sensitive placeholders) is used by default. Using tokens requires an additional table read, making it a slower process since each token must be converted back to its original data. Tokens are generated as a background task of the app using parallelization, meaning the work is split across multiple simultaneous processes for faster completion. If new tokens are created, users can access them on the next page load after the process runs. You can customize the tokenization algorithm in `shiny/tokens.R`.
 
-The tokenization setup process is parallelized to generate tokens for each survey in the database. The `tokens` table is used to store the tokens and survey names. The `token_active` field in the `.env` file is used to enable or disable tokenization. The `token_table_name` field in the `.env` file is used to define the table name for the tokens.
+The tokenization setup process is parallelized to generate tokens for each survey in the database, allowing multiple surveys to be processed simultaneously rather than one at a time. The `tokens` table is used to store the tokens and survey names. The `token_active` field in the `.env` file is used to enable or disable tokenization. The `token_table_name` field in the `.env` file is used to define the table name for the tokens.
 
 2.  Access survey with URL query parameters:
     -   Generic:
