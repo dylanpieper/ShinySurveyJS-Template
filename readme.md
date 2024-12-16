@@ -64,8 +64,8 @@ In this context, dynamic fields are defined as Shiny server operations that trac
     -   `table_name`: The table name for the dynamic field
     -   `group_col`: The column name that will be used to filter the dynamic fields
     -   `select_group`: A logical for using the group column to populate the survey item choices in the JSON field (true) or defining the group in the URL query for tracking (false)
-        -   `group_id_table_name`: If true, the table name to locate the group ID column used in the query for participant tracking
-        -   `group_id_col`: If true, the group ID column used in the query for participant tracking
+        -   `group_id_table_name`: If `select_group` is true, the table name to locate the group ID column used in the query for participant tracking
+        -   `group_id_col`: If `select_group` is true, the group ID column used in the query for participant tracking
     -   `choices_col`: The column name used to populate the survey item choices
     -   `surveys`: A list of survey names that the dynamic field applies to
 
