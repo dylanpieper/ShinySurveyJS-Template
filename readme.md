@@ -6,7 +6,7 @@ A template for hosting multiple surveys using **Shiny**, **SurveyJS**, and **Pos
 
 ## Why SurveyJS?
 
-[SurveyJS](https://surveyjs.io/) is a powerful open-source JavaScript library for designing forms and questionnaires with a ecosystem that includes a [visual editor](https://surveyjs.io/create-free-survey). It offers complete backend flexibility, as its libraries work seamlessly with any combination of server and database technologies. The front-end natively supports branching and conditional logic, input validation, diverse question types, theme and css options, adding panels and pages, and supporting multiple languages.
+[SurveyJS](https://surveyjs.io/) is a JavaScript library for designing forms and questionnaires with a rich ecosystem that includes a [visual editor](https://surveyjs.io/create-free-survey) and detailed [documentation](https://surveyjs.io/documentation). It offers complete backend flexibility, as its libraries work seamlessly with any combination of server and database technologies. The front-end natively supports branching and conditional logic, input validation, wide variety of question types, theme and css options, panels and pages, and multiple languages.
 
 There are a couple amazing Shiny-based survey tools like [surveydown](https://github.com/surveydown-dev/surveydown) or [shinysurveys](https://github.com/jdtrat/shinysurveys). However, these tools rely on Shiny for building the user interface (UI) and are limited to hosting a single survey per server. Because SurveyJS manages most of the UI components, it simplifies the development of a Shiny codebase that supports abstraction, such as hosting multiple surveys on the same server with unique dynamic field configurations.
 
@@ -15,7 +15,7 @@ The current implementation of ShinySurveyJS uses the [SurveyJS jQuery Form Libra
 ## Key Features
 
 -   Multiple surveys in a single app
--   URL query parameters use database tables to enable participant tracking and/or dynamically updating survey item choices (i.e., response options)
+-   URL query parameters use database tables to enable participant tracking and/or dynamically updating field choices (i.e., survey item response options)
 -   URL query tokens prevent user manipulation of public surveys
     -   Automatically generates and stores unique tokens in the database
     -   Supports multiple parameters and configurations
@@ -55,25 +55,31 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
 
 ## Setup Dynamic Fields
 
-In this context, dynamic fields are defined as Shiny server operations that track participants or update survey item choices using the URL query and database tables. The `config_json` field in the `surveys` table is used to store the dynamic field configuration as a JSON object. Remember that conditional logic can be handled by SurveyJS. 
+### Option 1: Live Tables
 
-1.  Run the queries in `setup_example.sql` to create the setup the `surveys`, `config_pid`, `config_vacation`, and `config_doctor_clinic` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
+For this option, dynamic fields are defined as Shiny server operations to track participants and/or reactively update field choices using the URL query and database table reads. The `config_json` field of the `surveys` table is used to store the dynamic field configuration as a JSON object. While this option is useful for participant tracking and real-time updates to the field choices, it requires additional database reads and may not be suitable for large-scale applications. Additionally, this option is not designed to handle a large number of dynamic fields.
+
+1.  Run the queries in `setup_example.sql` to create the setup the `surveys`, `config_pid`, `config_vacation`, `config_doctor_clinic`, and `config_staged_json` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
 
 2.  Optionally, create and manage your own dynamic fields table by mapping your fields to the `config_json` field in your `surveys` table as a JSON object:
 
     -   `table_name`: The table name for the dynamic field
     -   `group_col`: The column name that will be used to filter the dynamic fields
-    -   `select_group`: A logical for using the group column to populate the survey item choices in the JSON field (true) or defining the group in the URL query for tracking (false)
+    -   `select_group`: A logical for using the group column to populate the field choices in the JSON field (true) or defining the group in the URL query for tracking (false)
         -   `group_id_table_name`: If `select_group` is true, the table name to locate the group ID column used in the query for participant tracking
         -   `group_id_col`: If `select_group` is true, the group ID column used in the query for participant tracking
-    -   `choices_col`: The column name used to populate the survey item choices
+    -   `choices_col`: The column name used to populate the field choices
     -   `surveys`: A list of survey names that the dynamic field applies to
 
 Don't include spaces and special characters for the `group_col` or `group_id_col` value if you use them in the URL query. The app will automatically remove underscores when storing the data.
 
+### Option 2: Staged JSON
+
+For this option, dynamic field configurations are stored as JSON objects in the `staged_json` field of the `surveys` table. An asynchronous worker reads the JSON configuration and re-writes the `json` field if updates are available. This method is useful for staging the JSON configuration with an unlimited number of dynamic fields and without cumbersome database table reads. However, this option is not designed for participant tracking or real-time updates.
+
 ## Try Example Surveys
 
-These examples show how to use dynamic fields to track participants and/or update survey item choices using URL query parameters and database tables. The dynamic field server logic can be customized in `shiny/survey.R`.
+These examples show how to use dynamic fields to track participants and/or update field choices using URL query parameters and database tables. The dynamic field server logic can be customized in `shiny/survey.R`.
 
 1.  **survey_llm**: Assign participant ID in URL query with no selections for group or additional choices
 
@@ -118,8 +124,8 @@ These examples show how to use dynamic fields to track participants and/or updat
     ```         
     /?survey=survey_product_feedback
     ```
-    
-8.  **survey_protected_feedback**: Password-protected static survey
+
+8.  **survey_protected_feedback**: Static survey with password protection
 
     ```         
     /?survey=survey_product_feedback
@@ -161,4 +167,4 @@ Easily change the database driver in `database.R` to use any database system com
 
 ## Disclaimer
 
-This application template was not built with comprehensive security features. It lacks robust authentication methods, user management, private data encryption, and protection against common vulnerabilities like SQL injection. It is not suitable for production use. Users must implement their own security measures and accept all associated risks. No warranty is provided.
+This application template was not built with comprehensive security features. It lacks the robust implementation and testing of secure authentication methods, user management, private data encryption, and protection against common vulnerabilities like SQL injection. It is not suitable for production use. Users must implement their own security measures and accept all associated risks. No warranty is provided.
