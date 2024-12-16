@@ -175,7 +175,7 @@ VALUES
                 "columns": [
                     "None",
                     "Mild",
-                    "Moderate",
+                    "Moderate", 
                     "Severe"
                 ],
                 "rows": [
@@ -312,6 +312,75 @@ VALUES
     "showQuestionNumbers": "off",
     "showProgressBar": "top",
     "progressBarType": "questions"
+}'),
+
+    ('survey_protected_feedback',
+    NULL,
+    '{
+    "title": "Protected Feedback Survey",
+    "description": "Password protected survey example",
+    "firstPageIsStarted": true,
+    "startSurveyText": "Start Survey",
+    "pages": [
+        {
+            "name": "passwordPage",
+            "elements": [
+                {
+                    "type": "text",
+                    "name": "password",
+                    "title": "Thank you for entering the survey password",
+                    "isRequired": true
+                }
+            ],
+            "navigationButtonsVisibility": "show"
+        },
+        {
+            "name": "feedback",
+            "elements": [
+                {
+                    "type": "rating",
+                    "name": "meeting_rating",
+                    "title": "How would you rate the effectiveness of todays meeting?",
+                    "isRequired": true,
+                    "rateMax": 5
+                },
+                {
+                    "type": "checkbox",
+                    "name": "meeting_aspects",
+                    "title": "What aspects of the meeting were most valuable?",
+                    "isRequired": true,
+                    "choices": [
+                        "Presentation Content",
+                        "Group Discussion",
+                        "Q&A Session",
+                        "Networking Opportunities",
+                        "Project Updates"
+                    ]
+                },
+                {
+                    "type": "comment",
+                    "name": "suggestions",
+                    "title": "What suggestions do you have for future meetings?",
+                    "rows": 3
+                },
+                {
+                    "type": "boolean",
+                    "name": "follow_up",
+                    "title": "Would you like someone to follow up with you about any of your feedback?",
+                    "isRequired": true
+                },
+                {
+                    "type": "text",
+                    "name": "contact_info",
+                    "title": "If you would like a follow-up, please provide your contact information:",
+                    "visibleIf": "{follow_up} = true"
+                }
+            ],
+            "visibleIf": "{password} = ''secret123''"
+        }
+    ],
+    "showQuestionNumbers": "off",
+    "showProgressBar": "top"
 }');
 
 -- Create the tables for the dynamic survey examples
