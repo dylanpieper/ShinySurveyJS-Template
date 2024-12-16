@@ -142,8 +142,8 @@ Tokenization is used by default. Using tokens requires an additional table read,
         -   Without tokens (same as JSON file name): `/?survey=name`
         -   With tokens: `/?survey=token`
     -   Examples with dynamic fields:
-        -   Without tokens (`token_active <- FALSE`): `/?survey=survey_person_id&doctor=James_Wilson`
-        -   With tokens (`token_active <- TRUE`): `/?survey=SilverGalaxyEightHundredEightyOne&doctor=EightHundredTwelveGalaxyPlum`
+        -   Without tokens (`token_active=FALSE`): `/?survey=survey_person_id&doctor=James_Wilson`
+        -   With tokens (`token_active=TRUE`): `/?survey=SilverGalaxyEightHundredEightyOne&doctor=EightHundredTwelveGalaxyPlum`
 
 ## Use Any Database
 
