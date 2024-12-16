@@ -12,7 +12,7 @@ $(document).ready(function() {
       survey.getAllQuestions().forEach(question => {
         if (question.value !== undefined) {
           questionValues.set(question.name, question.value);
-          console.log(`Preserved value for ${question.name}:`, question.value);
+          // console.log(`Preserved value for ${question.name}:`, question.value);
         }
       });
     }
@@ -28,7 +28,7 @@ $(document).ready(function() {
           if (question.getType() === "dropdown") {
             question.displayValue = value; // Ensure visual display is updated
           }
-          console.log(`Restored value for ${name}:`, value);
+          // console.log(`Restored value for ${name}:`, value);
         }
       });
     }
@@ -41,7 +41,7 @@ $(document).ready(function() {
         return;
       }
 
-      console.log("Initializing survey with JSON:", surveyJSON);
+      // console.log("Initializing survey with JSON:", surveyJSON);
       
       preserveQuestionValues();
       
@@ -67,16 +67,16 @@ $(document).ready(function() {
       restoreQuestionValues();
       
       survey.onComplete.add(function(result) {
-        console.log("Survey completed. Data:", result.data);
+        // console.log("Survey completed. Data:", result.data);
         Shiny.setInputValue("surveyData", JSON.stringify(result.data));
       });
       
       survey.onValueChanged.add(function(sender, options) {
-        console.log("Value changed:", {
-          fieldName: options.name,
-          value: options.value,
-          previousValue: options.previousValue
-        });
+        // console.log("Value changed:", {
+        //   fieldName: options.name,
+        //   value: options.value,
+        //   previousValue: options.previousValue
+        // });
         
         questionValues.set(options.name, options.value);
         
@@ -109,7 +109,7 @@ $(document).ready(function() {
       
       $("#surveyContainer").Survey({ model: survey });
       
-      console.log("Survey initialization complete");
+      console.log("Survey initialized");
     } catch (error) {
       console.error("Error initializing survey:", error);
       console.trace();
@@ -117,12 +117,12 @@ $(document).ready(function() {
   }
   
   Shiny.addCustomMessageHandler("loadSurvey", function(surveyJSON) {
-    console.log("Received loadSurvey message with JSON:", surveyJSON);
+    // console.log("Received loadSurvey message with JSON:", surveyJSON);
     initializeSurvey(surveyJSON);
   });
   
   Shiny.addCustomMessageHandler("updateChoices", function(data) {
-    console.log("Received updateChoices message:", data);
+    // console.log("Received updateChoices message:", data);
     
     if (!survey) {
       console.error("Survey not initialized when trying to update choices");
@@ -136,7 +136,7 @@ $(document).ready(function() {
     }
     
     const currentValue = targetQuestion.value;
-    console.log("Current value before update:", currentValue);
+    // console.log("Current value before update:", currentValue);
     
     targetQuestion.choices = data.choices.map(choice => ({
       value: choice,
@@ -160,6 +160,6 @@ $(document).ready(function() {
       survey.render();
     }
     
-    console.log("Updated choices for question:", data.targetQuestion);
+    // console.log("Updated choices for question:", data.targetQuestion);
   });
 });
