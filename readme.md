@@ -83,7 +83,7 @@ For this option, dynamic field configurations are stored as JSON objects in the 
 
 This method is useful for staging the JSON configuration with an unlimited number of dynamic fields and without cumbersome database table reads. However, this option is not designed for participant tracking or loading real-time updates to the field choices.
 
-An example of the R/JSON hybrid syntax for the `config_staged_json` table is as follows:
+An example of the R/JSON hybrid syntax in `staged_json`:
 
 ``` json
 {
