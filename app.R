@@ -135,13 +135,15 @@ server <- function(input, output, session) {
     
     promise <- future({
       # Delay the setup for concurrent user testing
-      Sys.sleep(runif(1, 0, 5))
+      Sys.sleep(runif(1, 0, 10))
       future_pool <- db_pool$new()
       future_ops <- db_operations$new(future_pool$pool, session_token)
       future_setup <- db_setup$new(future_ops, session_token)
       
       tryCatch({
         message(sprintf("[Session %s] Starting async database services", session_token))
+        
+        future_setup$setup_staged_json(survey_table_name)
         
         if (token_active) {
           if (!is.null(initial_tokens) && nrow(initial_tokens) > 0) {

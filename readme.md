@@ -6,9 +6,9 @@ A template for hosting multiple surveys using **Shiny**, **SurveyJS**, and **Pos
 
 ## Why SurveyJS?
 
-[SurveyJS](https://surveyjs.io/) is a JavaScript library for designing forms and questionnaires with a rich ecosystem that includes a [visual editor](https://surveyjs.io/create-free-survey) and detailed [documentation](https://surveyjs.io/documentation). It offers complete backend flexibility, as its libraries work seamlessly with any combination of server and database technologies. The front-end natively supports branching and conditional logic, input validation, wide variety of question types, theme and css options, panels and pages, and multiple languages.
+[SurveyJS](https://surveyjs.io/) is a JavaScript library for designing forms and questionnaires with a rich ecosystem that includes a [visual editor](https://surveyjs.io/create-free-survey) and detailed [documentation](https://surveyjs.io/documentation). It offers complete backend flexibility, as its libraries work seamlessly with any combination of server and database technologies. The front-end natively supports branching and conditional logic, input validation, a wide variety of question types, theme and css options, panels and pages, and multiple languages.
 
-There are a couple amazing Shiny-based survey tools like [surveydown](https://github.com/surveydown-dev/surveydown) or [shinysurveys](https://github.com/jdtrat/shinysurveys). However, these tools rely on Shiny for building the user interface (UI) and are limited to hosting a single survey per server. Because SurveyJS manages most of the UI components, it simplifies the development of a Shiny codebase that supports abstraction, such as hosting multiple surveys on the same server with unique dynamic field configurations.
+There are a couple amazing survey tools for Shiny like [surveydown](https://github.com/surveydown-dev/surveydown) or [shinysurveys](https://github.com/jdtrat/shinysurveys). However, these tools rely on Shiny for building the user interface (UI) and are limited to hosting a single survey per server. While Shiny can offer beautiful and powerful UI components, SurveyJS does not require the UI to be developed or defined in Shiny. This feature makes it easier to build scalable Shiny applications that can host multiple surveys on a single server, complete with reactive components and unique dynamic field configurations.
 
 The current implementation of ShinySurveyJS uses the [SurveyJS jQuery Form Library](https://www.npmjs.com/package/survey-jquery).
 
@@ -55,27 +55,45 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
 
 ## Setup Dynamic Fields
 
+First, run the queries in `setup_example.sql` to create the setup the `surveys`, `config_pid`, `config_vacation`, `config_doctor_clinic`, and `config_staged_json` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
+
 ### Option 1: Live Tables
 
-For this option, dynamic fields are defined as Shiny server operations to track participants and/or reactively update field choices using the URL query and database table reads. The `config_json` field of the `surveys` table is used to store the dynamic field configuration as a JSON object. While this option is useful for participant tracking and real-time updates to the field choices, it requires additional database reads and may not be suitable for large-scale applications. Additionally, this option is not designed to handle a large number of dynamic fields.
+For this option, dynamic fields are defined as Shiny server operations to track participants and/or reactively update field choices using the URL query and database table reads. The `config_json` field of the `surveys` table is used to store the dynamic field configuration as a JSON object. While this option is useful for participant tracking and loading real-time updates to the field choices, it requires additional database reads and may not be suitable for large-scale applications. Additionally, this option is not designed to handle a large number of dynamic fields.
 
-1.  Run the queries in `setup_example.sql` to create the setup the `surveys`, `config_pid`, `config_vacation`, `config_doctor_clinic`, and `config_staged_json` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
+Optionally, create and manage your own dynamic fields table by mapping your fields to the `config_json` field in your `surveys` table as a JSON object:
 
-2.  Optionally, create and manage your own dynamic fields table by mapping your fields to the `config_json` field in your `surveys` table as a JSON object:
-
-    -   `table_name`: The table name for the dynamic field
-    -   `group_col`: The column name that will be used to filter the dynamic fields
-    -   `select_group`: A logical for using the group column to populate the field choices in the JSON field (true) or defining the group in the URL query for tracking (false)
-        -   `group_id_table_name`: If `select_group` is true, the table name to locate the group ID column used in the query for participant tracking
-        -   `group_id_col`: If `select_group` is true, the group ID column used in the query for participant tracking
-    -   `choices_col`: The column name used to populate the field choices
-    -   `surveys`: A list of survey names that the dynamic field applies to
+-   `table_name`: The table name for the dynamic field
+-   `group_col`: The column name that will be used to filter the dynamic fields
+-   `select_group`: A logical for using the group column to populate the field choices in the JSON field (true) or defining the group in the URL query for tracking (false)
+    -   `group_id_table_name`: If `select_group` is true, the table name to locate the group ID column used in the query for participant tracking
+    -   `group_id_col`: If `select_group` is true, the group ID column used in the query for participant tracking
+-   `choices_col`: The column name used to populate the field choices
+-   `surveys`: A list of survey names that the dynamic field applies to
 
 Don't include spaces and special characters for the `group_col` or `group_id_col` value if you use them in the URL query. The app will automatically remove underscores when storing the data.
 
 ### Option 2: Staged JSON
 
-For this option, dynamic field configurations are stored as JSON objects in the `staged_json` field of the `surveys` table. An asynchronous worker reads the JSON configuration and re-writes the `json` field if updates are available. This method is useful for staging the JSON configuration with an unlimited number of dynamic fields and without cumbersome database table reads. However, this option is not designed for participant tracking or real-time updates.
+For this option, dynamic field configurations are stored as JSON objects in the `staged_json` field of the `surveys` table. After a survey is loaded, an asynchronous worker reads the `staged_json` configuration and re-writes the `json` field if updates are available. The table name for the staged JSON configuration is located in the `staged_json_field_name` field. The table should have the following columns:
+
+-   `field_name`: The field name for the dynamic field (e.g., "age_group")
+-   `field_type`: The field type for the dynamic field (e.g., "radiogroup")
+-   `choices`: The field choices for the dynamic field (e.g., "['18-24', '25-34', '35-44', '45-54', '55-64', '65 or older']")
+
+This method is useful for staging the JSON configuration with an unlimited number of dynamic fields and without cumbersome database table reads. However, this option is not designed for participant tracking or loading real-time updates to the field choices.
+
+An example of the JSON configuration for the `config_staged_json` table is as follows:
+
+``` json
+{
+    "type": config_staged_json["age_group", "field_type"],
+    "name": "age_group",
+    "title": "What is your age group?",
+    "isRequired": true,
+    "choices": config_staged_json["age_group", "choices"]
+}
+```
 
 ## Try Example Surveys
 
@@ -87,7 +105,9 @@ These examples show how to use dynamic fields to track participants and/or updat
     /?survey=survey_llm&pid=Sam_Altman
     ```
 
-    In this case, you are not allowed to enter an invalid `pid` to avoid user manipulation
+    -   Use SurveyJS's curly bracket notation with a hidden `pid` field in the json to dynamically display URL query parameters in the UI
+
+    -   In this case, you are not allowed to enter an invalid `pid` to avoid user manipulation
 
 2.  **survey_vacation**: Select group (country) from a database table with no additional choices or participant tracking
 

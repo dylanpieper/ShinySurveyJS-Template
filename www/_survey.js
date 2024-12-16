@@ -121,6 +121,55 @@ $(document).ready(function() {
     initializeSurvey(surveyJSON);
   });
   
+  Shiny.addCustomMessageHandler("updateText", function(data) {
+    // Validate survey initialization
+    if (!survey) {
+        console.error("Survey not initialized when trying to update text");
+        return;
+    }
+    
+    // Get the target question by name
+    const targetQuestion = survey.getQuestionByName(data.targetQuestion);
+    if (!targetQuestion) {
+        console.warn("Target question not found:", data.targetQuestion);
+        return;
+    }
+    
+    // Store current value before update
+    const currentValue = targetQuestion.value;
+    
+    // Update the text value
+    targetQuestion.value = data.text;
+    targetQuestion.displayValue = data.text;
+    
+    // Force UI update
+    const textboxEl = targetQuestion.textboxEl || 
+                     document.querySelector(`[name="${data.targetQuestion}"]`);
+    if (textboxEl) {
+        textboxEl.value = data.text;
+        
+        // Trigger change event to ensure all listeners are notified
+        const event = new Event('change', { bubbles: true });
+        textboxEl.dispatchEvent(event);
+        
+        // Also trigger input event for real-time listeners
+        const inputEvent = new Event('input', { bubbles: true });
+        textboxEl.dispatchEvent(inputEvent);
+    }
+    
+    // Render the survey to ensure UI is in sync
+    survey.render();
+    
+    // Optional callback if provided
+    if (data.callback) {
+        try {
+            data.callback(data.text, targetQuestion);
+        } catch (e) {
+            console.error("Error in update text callback:", e);
+        }
+      }
+  });
+  
   Shiny.addCustomMessageHandler("updateChoices", function(data) {
     // console.log("Received updateChoices message:", data);
     

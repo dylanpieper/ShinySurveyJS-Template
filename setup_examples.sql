@@ -28,12 +28,22 @@ VALUES
         "description": "Assign participant ID in URL query with no selections for group or additional choices",
         "elements": [
             {
+                "type": "html",
+                "visibleIf": "{pid} notempty",
+                "html": "Hi, welcome to the survey {pid}"
+            },
+            {
                 "type": "radiogroup",
-                "name": "llm_provider",
+                "name": "llm_provider", 
                 "title": "Who is your favorite Large Language Model (LLM) provider?",
                 "choices": ["OpenAI", "Anthropic", "Google"],
                 "hasOther": true,
                 "isRequired": true
+            },
+            {
+                "type": "text",
+                "name": "pid",
+                "visible": false
             }
         ]
     }'),
@@ -393,7 +403,7 @@ VALUES (
   'config_staged_json',
   '{
         "title": "Staged JSON Survey",
-        "description": "Basic demographic information survey",
+        "description": "Basic demographic information survey with field choices from a staged JSON table",
         "pages": [
             {
                 "name": "demographics",
@@ -430,13 +440,20 @@ VALUES (
                         "type": "text",
                         "name": "zip_code",
                         "title": "What is your ZIP code?",
-                        "isRequired": true
+                        "isRequired": true,
+                        "validators": [
+                            {
+                                "type": "regex",
+                                "regex": "^\\d{5}(?:-\\d{4})?$",
+                                "text": "Please enter a valid ZIP code (12345 or 12345-6789)"
+                            }
+                        ],
+                        "maxLength": 10
                     }
                 ]
             }
         ],
-        "showQuestionNumbers": "off",
-        "showProgressBar": "top"
+        "showQuestionNumbers": "off"
     }',
   '{
         "title": "Staged JSON Survey",
@@ -503,13 +520,20 @@ VALUES (
                         "type": "text",
                         "name": "zip_code",
                         "title": "What is your ZIP code?",
-                        "isRequired": true
+                        "isRequired": true,
+                        "validators": [
+                            {
+                                "type": "regex",
+                                "regex": "^\\d{5}(?:-\\d{4})?$",
+                                "text": "Please enter a valid ZIP code (12345 or 12345-6789)"
+                            }
+                        ],
+                        "maxLength": 10
                     }
                 ]
             }
         ],
-        "showQuestionNumbers": "off",
-        "showProgressBar": "top"
+        "showQuestionNumbers": "off"
     }'
 );
 

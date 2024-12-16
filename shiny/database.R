@@ -93,7 +93,7 @@ db_operations <- R6::R6Class(
     write_to_tokens_table = function(data, token_table_name) {
       required_fields <- c("object", "token", "date_created", "date_updated")
       if (!all(required_fields %in% names(data))) {
-        stop(private$format_message("The data frame must contain fields: object, token, date_created, date_updated"))
+        stop(private$format_message(paste0("The data frame must contain fields: ", required_fields)))
       }
       
       if (!is.data.frame(data) || nrow(data) == 0) {
@@ -108,8 +108,58 @@ db_operations <- R6::R6Class(
           append = TRUE,
           row.names = FALSE
         )
-        private$log_message("Successfully wrote to tokens table")
-      }, "Failed to write to tokens table")
+        private$log_message(private$log_message(sprintf("Successfully wrote to %s table", token_table_name)))
+      }, sprintf("Failed to write to %s table", token_table_name))
+    },
+    
+    write_to_surveys_table = function(data, survey_table_name) {
+      required_fields <- c("id", "survey_name", "json")
+      if (!all(required_fields %in% names(data))) {
+        stop(private$format_message(paste0("The data frame must contain fields: ", required_fields)))
+      }
+      
+      if (!is.data.frame(data) || nrow(data) == 0) {
+        stop(private$format_message("Invalid data provided: must be a non-empty data frame"))
+      }
+      
+      self$execute_db_operation(function(conn) {
+        # For each row in the data frame
+        for (i in 1:nrow(data)) {
+          row <- data[i, ]
+          
+          # Check if ID exists
+          if ("id" %in% names(row) && !is.na(row$id)) {
+            # Update existing record
+            update_query <- sprintf(
+              "UPDATE %s 
+           SET survey_name = $1, 
+               json = $2
+           WHERE id = $3",
+              DBI::dbQuoteIdentifier(conn, survey_table_name)
+            )
+            
+            DBI::dbExecute(
+              conn,
+              update_query,
+              params = list(
+                row$survey_name,
+                row$json,
+                row$id
+              )
+            )
+          } else {
+            # Insert new record
+            DBI::dbWriteTable(
+              conn,
+              name = survey_table_name,
+              value = row,
+              append = TRUE,
+              row.names = FALSE
+            )
+          }
+        }
+        private$log_message(sprintf("Successfully wrote to %s table", survey_table_name))
+      }, sprintf("Failed to write to %s table", survey_table_name))
     },
     
     check_table_exists = function(table_name) {
@@ -130,10 +180,8 @@ db_operations <- R6::R6Class(
                           attempt = 1,
                           last_error = NULL) {
       if (is.null(table_name) || !is.character(table_name) || length(table_name) != 1) {
-        stop(private$format_message("Invalid 'table_name'. It must be a non-null, single-character string."))
+        stop(private$format_message(paste0("Invalid 'table_name': ", table_name, ". It must be a non-null, single-character string.")))
       }
-      
-
       
       while (attempt <= max_retries) {
         tryCatch({
@@ -212,9 +260,12 @@ db_operations <- R6::R6Class(
     log_message = function(msg) {
       message(private$format_message(msg))
     },
+    
     format_message = function(msg) {
       sprintf("[Session %s] %s", self$session_id, msg)
-    }
+    },
+    
+    table_cache = NULL
   )
 )
 
@@ -230,6 +281,101 @@ db_setup <- R6::R6Class(
     initialize = function(db_ops, session_id) {
       self$db_ops <- db_ops
       self$session_id <- session_id
+    },
+    
+    setup_staged_json = function(survey_table_name) {
+      # Initialize table_cache if needed
+      if (is.null(private$table_cache)) {
+        private$table_cache <- list()
+      }
+      
+      # Read survey data with caching
+      cache_key <- paste0("survey_", survey_table_name)
+      if (is.null(private$table_cache[[cache_key]])) {
+        # Changed from self$read_table to self$db_ops$read_table
+        surveys_data <- self$db_ops$read_table(survey_table_name)
+        private$table_cache[[cache_key]] <- surveys_data
+      } else {
+        surveys_data <- private$table_cache[[cache_key]]
+      }
+      
+      # Filter for non-null staged_json
+      surveys_data <- surveys_data |>
+        dplyr::filter(!is.na(staged_json))
+      
+      if (nrow(surveys_data) == 0) {
+        private$log_message("No records with staged JSON found")
+        return(surveys_data)
+      }
+      
+      # Store original json for comparison later
+      original_json <- surveys_data$json
+      
+      # Create a lookup for staged_json_table data
+      staged_tables <- unique(surveys_data$staged_json_table_name)
+      staged_data_lookup <- list()
+      
+      # Cache and load all required staged json tables
+      for (table_name in staged_tables) {
+        cache_key <- paste0("staged_", table_name)
+        if (is.null(private$table_cache[[cache_key]])) {
+          # Changed from self$read_table to self$db_ops$read_table
+          table_data <- self$db_ops$read_table(table_name)
+          private$table_cache[[cache_key]] <- table_data
+        }
+        staged_data_lookup[[table_name]] <- private$table_cache[[cache_key]]
+      }
+      
+      # Process each survey row
+      processed_json <- vector("character", nrow(surveys_data))
+      for (i in seq_len(nrow(surveys_data))) {
+        json_str <- surveys_data$staged_json[i]
+        staged_json_data <- staged_data_lookup[[surveys_data$staged_json_table_name[i]]]
+        
+        # Find all patterns matching table_name["field_name", "column_name"]
+        patterns <- unlist(regmatches(json_str, 
+                                      gregexpr('\\w+\\["[^"]+", "[^"]+"\\]', 
+                                               json_str)))
+        
+        # Process each pattern
+        for (pattern in patterns) {
+          json_str <- private$process_match(pattern, json_str, staged_json_data)
+        }
+        
+        # Parse and re-serialize to ensure proper JSON formatting
+        tryCatch({
+          final_json <- jsonlite::toJSON(
+            jsonlite::fromJSON(json_str, simplifyVector = FALSE),
+            auto_unbox = TRUE,
+            pretty = TRUE
+          )
+          processed_json[i] <- final_json
+        }, error = function(e) {
+          warning("Failed to parse JSON for row ", i, ": ", e$message)
+          processed_json[i] <- json_str
+        })
+      }
+      
+      # Update the json column with processed values
+      surveys_data$json <- processed_json
+      
+      # Compare new JSON with original JSON and only write if different
+      changed_records <- surveys_data[surveys_data$json != original_json, ]
+
+      # Write to surveys database
+      if (nrow(changed_records) > 0) {
+        self$db_ops$write_to_surveys_table(changed_records |>
+                                             dplyr::select(id, survey_name, json), 
+                                           survey_table_name)
+        private$log_message(sprintf(
+          "Updated records in %s table (n = %d)",
+          survey_table_name, nrow(changed_records)
+        ))
+      } else {
+        private$log_message("No changes detected in staged JSON data")
+      }
+      
+      return(surveys_data)
     },
     
     setup_database = function(mode, token_table, token_table_name, survey_table_name) {
@@ -445,12 +591,48 @@ db_setup <- R6::R6Class(
       invisible(token_table)
     }
   ),
+  
   private = list(
+    table_cache = NULL,
+    
     log_message = function(msg) {
       message(private$format_message(msg))
     },
+    
     format_message = function(msg) {
       sprintf("[Session %s] %s", self$session_id, msg)
+    },
+    
+    # Move process_match here
+    process_match = function(pattern, json_str, staged_json_data) {
+      parts <- regmatches(pattern, regexec('(\\w+)\\["([^"]+)", "([^"]+)"\\]', pattern))[[1]]
+      
+      if (length(parts) == 4) {
+        field_name <- parts[3]
+        column_name <- parts[4]
+        
+        matching_row <- staged_json_data[gsub('"', '', staged_json_data$field_name) == field_name, ]
+        
+        if (nrow(matching_row) > 0) {
+          replacement_value <- matching_row[[column_name]]
+          
+          # If the replacement value looks like a JSON array or object string, parse it
+          if (grepl("^\\[|^\\{", replacement_value)) {
+            tryCatch({
+              parsed_value <- jsonlite::fromJSON(replacement_value)
+              replacement_value <- jsonlite::toJSON(parsed_value, auto_unbox = TRUE)
+            }, error = function(e) {
+              replacement_value <- jsonlite::toJSON(replacement_value, auto_unbox = TRUE)
+            })
+          } else {
+            replacement_value <- jsonlite::toJSON(replacement_value, auto_unbox = TRUE)
+          }
+          
+          # Replace the pattern with the actual value
+          json_str <- gsub(pattern, replacement_value, json_str, fixed = TRUE)
+        }
+      }
+      return(json_str)
     }
   )
 )

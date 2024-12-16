@@ -148,6 +148,19 @@ surveyServer <- function(input = NULL,
     }
   }
   
+  # Helper function to update survey text
+  update_survey_text <- function(question_name, text) {
+    if (!is.null(text)) {
+      session$sendCustomMessage(
+        "updateText",
+        list(
+          "targetQuestion" = question_name,
+          "text" = as.character(text)
+        )
+      )
+    }
+  }
+  
   # Helper function to resolve token to object
   resolve_token <- function(token) {
     if (is.null(token)) {
@@ -399,6 +412,16 @@ surveyServer <- function(input = NULL,
       
       # Store valid group value
       rv$group_value <- group_val
+      
+      selected_group <- query[[config$group_col]]
+      if (!is.null(selected_group)) {
+        if (token_active) {
+          group_val <- resolve_token(selected_group)
+        }
+      }
+      
+      # Update the hidden text for surveyjs json reactivity
+      update_survey_text(config$group_col, gsub("_", " ", group_val))
     }
     
     # CASE 2: Select group from a database table with no additional choices
@@ -558,7 +581,7 @@ surveyServer <- function(input = NULL,
     # Add session ID to data
     data$session_id <- session_id
     
-    # Get IP address from headers only if they exist
+    # Get IP address from headers if available
     ip <- NULL
     request <- session$request
     
