@@ -71,7 +71,7 @@ Optionally, create and manage your own dynamic fields table by mapping your fiel
 -   `choices_col`: The column name used to populate the field choices
 -   `surveys`: A list of survey names that the dynamic field applies to
 
-Don't include spaces and special characters for the `group_col` or `group_id_col` value if you use them in the URL query. The app will automatically remove underscores when storing the data.
+Don't include spaces and special characters for the `group_col` or `group_id_col` value if you use them in the URL query. The app will automatically remove underscores when storing or displaying the data.
 
 ### Option 2: Staged JSON
 
