@@ -3,7 +3,7 @@
 
 # if (!requireNamespace("pak", quietly = TRUE)) install.packages("pak")
 # pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs", 
-#                    DBI", "RPostgres", "pool", future", "promises", "DT"))
+#                    "DBI", "RPostgres", "pool", future", "promises", "DT"))
 
 # Packages ----
 library(R6)

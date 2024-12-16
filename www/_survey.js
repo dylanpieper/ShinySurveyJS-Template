@@ -37,7 +37,7 @@ $(document).ready(function() {
   function initializeSurvey(surveyJSON) {
     try {
       if (lastLoadedSurveyJSON && areJSONsEqual(lastLoadedSurveyJSON, surveyJSON)) {
-        console.log("Identical survey JSON. Skipping reinitialization.");
+        console.log("Identical survey JSON. Skipping re-initialization.");
         return;
       }
 
