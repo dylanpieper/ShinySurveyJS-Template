@@ -1,9 +1,11 @@
 -- Create the survey config table
 CREATE TABLE surveys (
     id SERIAL PRIMARY KEY,
-    survey_name VARCHAR(255) NOT NULL,
+    survey_name TEXT NOT NULL,
     config_json JSON,
-    json TEXT NOT NULL,
+    staged_json_table_name TEXT,
+    staged_json TEXT,
+    json text NOT NULL,
     active BOOLEAN DEFAULT TRUE,
     start_date TIMESTAMP WITH TIME ZONE,
     end_date TIMESTAMP WITH TIME ZONE,
@@ -328,7 +330,10 @@ VALUES
                 {
                     "type": "text",
                     "name": "password",
-                    "title": "Thank you for entering the survey password",
+                    "title": {
+                        "default": "Thank you for entering the survey password",
+                        "visibleIf": "{password} = ''secret123''"
+                    },
                     "isRequired": true
                 }
             ],
@@ -379,9 +384,134 @@ VALUES
             "visibleIf": "{password} = ''secret123''"
         }
     ],
-    "showQuestionNumbers": "off",
-    "showProgressBar": "top"
+    "showQuestionNumbers": "off"
 }');
+
+INSERT INTO surveys (survey_name, staged_json_table_name, staged_json, json)
+VALUES (
+  'survey_staged_json',
+  'config_staged_json',
+  '{
+        "title": "Staged JSON Survey",
+        "description": "Basic demographic information survey",
+        "pages": [
+            {
+                "name": "demographics",
+                "elements": [
+                    {
+                        "type": config_staged_json["age_group", "field_type"],
+                        "name": "age_group",
+                        "title": "What is your age group?",
+                        "isRequired": true,
+                        "choices": config_staged_json["age_group", "choices"]
+                    },
+                    {
+                        "type": "radiogroup",
+                        "name": "gender",
+                        "title": "What is your gender?",
+                        "isRequired": true,
+                        "choices": config_staged_json["gender", "choices"]
+                    },
+                    {
+                        "type": "dropdown",
+                        "name": "education",
+                        "title": "What is your highest level of education?",
+                        "isRequired": true,
+                        "choices": config_staged_json["education", "choices"]
+                    },
+                    {
+                        "type": "checkbox",
+                        "name": "employment",
+                        "title": "What is your current employment status? (Select all that apply)",
+                        "isRequired": true,
+                        "choices": config_staged_json["employment", "choices"]
+                    },
+                    {
+                        "type": "text",
+                        "name": "zip_code",
+                        "title": "What is your ZIP code?",
+                        "isRequired": true
+                    }
+                ]
+            }
+        ],
+        "showQuestionNumbers": "off",
+        "showProgressBar": "top"
+    }',
+  '{
+        "title": "Staged JSON Survey",
+        "description": "Basic demographic information survey",
+        "pages": [
+            {
+                "name": "demographics",
+                "elements": [
+                    {
+                        "type": "dropdown",
+                        "name": "age_group",
+                        "title": "What is your age group?",
+                        "isRequired": true,
+                        "choices": [
+                            "18-24",
+                            "25-34",
+                            "35-44",
+                            "45-54",
+                            "55-64",
+                            "65 or older"
+                        ]
+                    },
+                    {
+                        "type": "radiogroup",
+                        "name": "gender",
+                        "title": "What is your gender?",
+                        "isRequired": true,
+                        "choices": [
+                            "Male",
+                            "Female",
+                            "Non-binary",
+                            "Prefer not to say"
+                        ]
+                    },
+                    {
+                        "type": "dropdown",
+                        "name": "education",
+                        "title": "What is your highest level of education?",
+                        "isRequired": true,
+                        "choices": [
+                            "High School or equivalent",
+                            "Some College",
+                            "Bachelor''s Degree",
+                            "Master''s Degree",
+                            "Doctorate",
+                            "Other"
+                        ]
+                    },
+                    {
+                        "type": "checkbox",
+                        "name": "employment",
+                        "title": "What is your current employment status? (Select all that apply)",
+                        "isRequired": true,
+                        "choices": [
+                            "Full-time employed",
+                            "Part-time employed",
+                            "Self-employed",
+                            "Student",
+                            "Retired",
+                            "Unemployed"
+                        ]
+                    },
+                    {
+                        "type": "text",
+                        "name": "zip_code",
+                        "title": "What is your ZIP code?",
+                        "isRequired": true
+                    }
+                ]
+            }
+        ],
+        "showQuestionNumbers": "off",
+        "showProgressBar": "top"
+    }'
+);
 
 -- Create the tables for the dynamic survey examples
 CREATE TABLE config_pid (
@@ -565,6 +695,36 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+-- Create the config_staged_json table
+CREATE TABLE config_staged_json (
+    id SERIAL PRIMARY KEY,
+    field_name VARCHAR(50),
+    field_type VARCHAR(50),
+    choices JSONB,
+    date_created TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert configurations from the survey
+INSERT INTO config_staged_json (field_name, field_type, choices)
+VALUES 
+    ('"age_group"', 
+     '"radiogroup"',
+     '["18-24", "25-34", "35-44", "45-54", "55-64", "65 or older"]'::jsonb
+    ),
+    ('"gender"',
+     '"radiogroup"',
+     '["Male", "Female", "Non-binary", "Transgender", "Prefer not to say"]'::jsonb
+    ),
+    ('"education"',
+     '"dropdown"',
+     '["High School or equivalent", "Some College", "Bachelor''s Degree", "Master''s Degree", "Doctorate", "Other"]'::jsonb
+    ),
+    ('"employment"',
+     '"checkbox"',
+     '["Full-time employed", "Part-time employed", "Self-employed", "Student", "Retired", "Unemployed"]'::jsonb
+    );
+
 -- Create timestamp update triggers for all tables
 CREATE TRIGGER update_timestamp_trigger
     BEFORE UPDATE ON surveys
@@ -583,5 +743,10 @@ CREATE TRIGGER update_timestamp_trigger
 
 CREATE TRIGGER update_timestamp_trigger
     BEFORE UPDATE ON config_doctor_clinic
+    FOR EACH ROW
+    EXECUTE FUNCTION update_timestamp();
+    
+CREATE TRIGGER update_timestamp_trigger
+    BEFORE UPDATE ON config_staged_json
     FOR EACH ROW
     EXECUTE FUNCTION update_timestamp();
