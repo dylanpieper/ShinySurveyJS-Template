@@ -134,7 +134,7 @@ server <- function(input, output, session) {
                                    token_table_name, survey_table_name) {
     
     promise <- future({
-      # Delay the setup for concurrent user testing
+      # Randomly delay the setup for concurrent user load testing
       Sys.sleep(runif(1, 0, 10))
       future_pool <- db_pool$new()
       future_ops <- db_operations$new(future_pool$pool, session_token)
