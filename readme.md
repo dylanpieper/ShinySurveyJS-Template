@@ -105,7 +105,7 @@ These examples show how to use dynamic fields to track participants and/or updat
     /?survey=survey_llm&pid=Sam_Altman
     ```
 
-    -   Use SurveyJS's curly bracket notation with a hidden `pid` field in the json to dynamically display URL query parameters in the UI
+    -   Use SurveyJS's curly bracket notation with a hidden `pid` field in the json to reactively display the URL query parameters in the UI
 
     -   In this case, you are not allowed to enter an invalid `pid` to avoid user manipulation
 
@@ -139,16 +139,22 @@ These examples show how to use dynamic fields to track participants and/or updat
     /?survey=survey_person_id&doctor=Sarah_Chen
     ```
 
-7.  **survey_product_feedback**: Static survey with no dynamic fields
+7.  **survey_product_feedback**: Static feedback survey with no dynamic fields
 
     ```         
     /?survey=survey_product_feedback
     ```
 
-8.  **survey_protected_feedback**: Static survey with password protection
+8.  **survey_protected_feedback**: Static feedback survey with password protection
 
     ```         
     /?survey=survey_product_feedback
+    ```
+    
+9.  **survey_staged_json**: Static demographic survey with field choices from a staged JSON table
+
+    ```         
+    /?survey=survey_staged_json
     ```
 
 ## Run Survey App
