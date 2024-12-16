@@ -19,6 +19,7 @@ library(promises)
 library(DT)
 
 # Source modules
+source("shiny/shiny.R")
 source("shiny/survey.R")
 source("shiny/messages.R")
 source("shiny/database.R")
@@ -133,6 +134,7 @@ server <- function(input, output, session) {
                                    token_table_name, survey_table_name) {
     
     promise <- future({
+      # Delay the setup for concurrent user testing
       Sys.sleep(runif(1, 0, 5))
       future_pool <- db_pool$new()
       future_ops <- db_operations$new(future_pool$pool, session_token)

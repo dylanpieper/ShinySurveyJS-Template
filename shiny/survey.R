@@ -32,7 +32,7 @@ surveyServer <- function(input = NULL,
     survey_config = NULL,        # Survey configuration from database
     dynamic_config = NULL,       # Parsed config_json for dynamic fields
     group_value = NULL,          # Current group value
-    participant_id = NULL,       # Current participant ID
+    group_id = NULL,             # Current group ID
     table_cache = new.env(),     # Cache for database tables
     token_data = NULL,           # Store token data
     display_data = NULL          # Processed data for display
@@ -83,15 +83,15 @@ surveyServer <- function(input = NULL,
     get(table_name, envir = rv$table_cache)
   }
   
-  # Helper function to validate group values
-  validate_group_value <- function(value, table_data, col_name, context = "group") {
+  # Helper function to validate values
+  validate_value <- function(value, table_data, col_name, context = "value") {
     if (is.null(value) || is.null(table_data) || !col_name %in% names(table_data)) {
       return(FALSE)
     }
     
     is_valid <- value %in% table_data[[col_name]]
     if (!is_valid) {
-      warning(sprintf("[Session %s] Invalid %s value: %s", 
+      warning(sprintf("[Session %s] Invalid %s: %s", 
                       session_id, context, value))
     }
     return(is_valid)
@@ -112,22 +112,21 @@ surveyServer <- function(input = NULL,
   
   # Helper function to resolve token to object
   resolve_token <- function(token) {
-    if (!token_active || is.null(token)) {
-      warning(sprintf("[Session %s] Token resolution skipped (token_active: %s, token: %s)", 
-                      session_id, token_active, token))
-      return(token)
+    if (is.null(token)) {
+      warning(sprintf("[Session %s] No token provided", session_id))
+      return(NULL)
     }
-    
+
     token_df <- rv$token_data
     if (is.null(token_df)) {
-      warning(sprintf("[Session %s] Token table is NULL - Check token_table parameter", session_id))
-      return(token)
+      warning(sprintf("[Session %s] Token table is NULL (check token_table parameter)", session_id))
+      return(NULL)
     }
     
     if (!("token" %in% names(token_df) && "object" %in% names(token_df))) {
-      warning(sprintf("[Session %s] Token table missing required columns. Available columns: %s", 
+      warning(sprintf("[Session %s] Token table missing required columns (available columns: %s)", 
                       session_id, paste(names(token_df), collapse=", ")))
-      return(token)
+      return(NULL)
     }
     
     matching_rows <- token_df[token_df$token == token, "object"]
@@ -135,112 +134,118 @@ surveyServer <- function(input = NULL,
       return(matching_rows[1])
     }
     
-    warning(sprintf("[Session %s] Token not found: %s", 
-                    session_id, token))
-    return(token)
-  }
-  
-  # Helper function to handle main group value resolution and storage
-  handle_group_value <- function(group_param) {
-    if (!is.null(group_param)) {
-      # Resolve token first
-      group_val <- resolve_token(group_param)
-      
-      if (length(group_val) > 0) {
-        # Get the table data to validate against
-        config <- rv$dynamic_config
-        if (is.null(config) || is.null(config$table_name) || is.null(config$group_col)) {
-          warning(sprintf("[Session %s] Missing configuration for group validation", 
-                          session_id))
-          hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
-          return(NULL)
-        }
-        
-        # Get table data with error handling
-        table_data <- tryCatch({
-          get_cached_table(config$table_name, required_cols = config$group_col)
-        }, error = function(e) {
-          warning(sprintf("[Session %s] Error retrieving table data: %s", 
-                          session_id, e$message))
-          return(NULL)
-        })
-        
-        if (is.null(table_data)) {
-          warning(sprintf("[Session %s] Could not retrieve table data for validation", 
-                          session_id))
-          hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
-          return(NULL)
-        }
-        
-        # Validate group value exists in table
-        if (!group_val %in% table_data[[config$group_col]]) {
-          warning(sprintf("[Session %s] Invalid group value provided: %s", 
-                          session_id, group_val))
-          hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
-          return(NULL)
-        }
-        
-        # If we get here, the group value is valid
-        rv$group_value <- group_val
-        return(group_val)
-      }
-    }
-    
-    warning(sprintf("[Session %s] No valid group value found for parameter: %s", 
-                    session_id, group_param))
-    hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
+    warning(sprintf("[Session %s] Token not found: %s", session_id, token))
     return(NULL)
   }
   
-  # Helper function to handle participant ID resolution and storage
-  handle_participant_id <- function(participant_param) {
-    if (!is.null(participant_param)) {
+  # Helper function to handle group value resolution and storage
+  handle_group_value <- function(group_param) {
+    if (is.null(group_param)) {
+      warning(sprintf("[Session %s] No group parameter provided", session_id))
+      hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
+      return(NULL)
+    }
+    
+    # Get the configuration first
+    config <- rv$dynamic_config
+    if (is.null(config) || is.null(config$table_name) || is.null(config$group_col)) {
+      warning(sprintf("[Session %s] Missing configuration for group validation", session_id))
+      hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
+      return(NULL)
+    }
+    
+    # Get table data with error handling
+    table_data <- tryCatch({
+      get_cached_table(config$table_name, required_cols = config$group_col)
+    }, error = function(e) {
+      warning(sprintf("[Session %s] Error retrieving table data: %s", session_id, e$message))
+      hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
+      return(NULL)
+    })
+    
+    if (is.null(table_data)) {
+      warning(sprintf("[Session %s] Could not retrieve table data for validation", session_id))
+      hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
+      return(NULL)
+    }
+    
+    # Resolve token and validate group value
+    if (token_active) {
+      group_val <- resolve_token(group_param)
+    } else {
+      group_val <- group_param
+    }
+    
+    if (is.null(group_val)) {
+      hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
+      return(NULL)
+    }
+    
+    # Validate group value exists in table
+    if (!group_val %in% table_data[[config$group_col]]) {
+      warning(sprintf("[Session %s] Invalid group value provided: %s", session_id, group_val))
+      hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
+      return(NULL)
+    }
+    
+    # Store valid group value
+    rv$group_value <- group_val
+    return(group_val)
+  }
+  
+  # Helper function to handle group ID resolution and storage
+  handle_group_id <- function(id_param) {
+    if (!is.null(id_param)) {
       # Resolve token first
-      participant_val <- resolve_token(participant_param)
+      if (token_active) {
+        id_val <- resolve_token(id_param)
+      } else {
+        id_val <- id_param
+      }
       
-      if (length(participant_val) > 0) {
+      if (length(id_val) > 0) {
         # Get the configuration
         config <- rv$dynamic_config
         if (is.null(config) || is.null(config$group_id_table_name) || is.null(config$group_id_col)) {
-          warning(sprintf("[Session %s] Missing configuration for participant ID validation", 
+          warning(sprintf("[Session %s] Missing configuration for group ID validation", 
                           session_id))
-          hide_and_show_message("waitingMessage", "invalidParticipantMessage")
+          hide_and_show_message("waitingMessage", "invalidGroupIdMessage")
           return(NULL)
         }
         
-        # Get participant table data with error handling
-        participant_table <- tryCatch({
+        # Get group ID table data with error handling
+        group_id_table <- tryCatch({
           get_cached_table(config$group_id_table_name, required_cols = config$group_id_col)
         }, error = function(e) {
-          warning(sprintf("[Session %s] Error retrieving participant table data: %s", 
+          warning(sprintf("[Session %s] Error retrieving group ID table data: %s", 
                           session_id, e$message))
           return(NULL)
         })
         
-        if (is.null(participant_table)) {
-          warning(sprintf("[Session %s] Could not retrieve participant table for validation", 
+        if (is.null(group_id_table)) {
+          warning(sprintf("[Session %s] Could not retrieve group ID table for validation", 
                           session_id))
-          hide_and_show_message("waitingMessage", "invalidParticipantMessage")
+          hide_and_show_message("waitingMessage", "invalidGroupIdMessage")
           return(NULL)
         }
         
-        # Validate participant ID exists in table
-        if (!participant_val %in% participant_table[[config$group_id_col]]) {
-          warning(sprintf("[Session %s] Invalid participant ID provided: %s", 
-                          session_id, participant_val))
-          hide_and_show_message("waitingMessage", "invalidParticipantMessage")
+        # Validate group ID exists in table
+        if (!id_val %in% group_id_table[[config$group_id_col]]) {
+          warning(sprintf("[Session %s] Invalid group ID provided: %s", 
+                          session_id, id_val))
+          hide_and_show_message("waitingMessage", "invalidGroupIdMessage")
           return(NULL)
         }
         
-        # If we get here, the participant ID is valid
-        rv$participant_id <- participant_val
-        return(participant_val)
+        # If we get here, the group ID is valid
+        rv$group_id <- id_val
+        return(id_val)
       }
     }
     
-    warning(sprintf("[Session %s] No valid participant ID found for parameter: %s", 
-                    session_id, participant_param))
-    hide_and_show_message("waitingMessage", "invalidParticipantMessage")
+    warning(sprintf("[Session %s] No valid group ID found for parameter: %s", 
+                    session_id, id_param))
+    hide_and_show_message("waitingMessage", "invalidGroupIdMessage")
     return(NULL)
   }
   
@@ -250,83 +255,66 @@ surveyServer <- function(input = NULL,
     survey_param <- query$survey
     
     if (is.null(survey_param)) {
-      warning(sprintf("[Session %s] No survey parameter in query: %s", 
-                      session_id, paste(names(query), collapse=", ")))
+      warning(sprintf("[Session %s] No survey parameter in query", session_id))
       hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
       return()
     }
     
-    # Debug log for survey parameter
-    message(sprintf("[Session %s] Processing survey parameter: %s", session_id, survey_param))
+    # When tokens are active, require token access
+    if (token_active) {
+      survey_name <- resolve_token(survey_param)
+    } else {
+      survey_name <- survey_param
+    }
     
-    # Resolve survey name from token if needed
-    survey_name <- resolve_token(survey_param)
-    
-    if (length(survey_name) == 0) {
-      warning(sprintf("[Session %s] Invalid survey token: %s", session_id, survey_param))
+    if (is.null(survey_name)) {
+      hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
       return()
     }
     
-    # Debug log for database operation
-    message(sprintf("[Session %s] Querying database for survey: %s", session_id, survey_name))
-    
-    # Query survey configuration from database with detailed error tracking
+    # Query survey configuration from database
     survey_record <- tryCatch({
       result <- db_ops$read_table(survey_table_name) |> 
         as.data.frame() |> 
         dplyr::filter(survey_name == !!survey_name)
       
-      # Debug log for query result
       message(sprintf("[Session %s] Filtered survey table (n = %s)", 
                       session_id, if(is.null(result)) "NULL" else nrow(result)))
       
       result
     }, error = function(e) {
-      warning(sprintf("[Session %s] Error querying 'surveys' table: %s\nStack trace:\n%s", 
-                      session_id, e$message, paste(sys.calls(), collapse = "\n")))
+      warning(sprintf("[Session %s] Error querying survey table: %s", 
+                      session_id, e$message))
       return(NULL)
     })
     
-    if (is.null(survey_record)) {
-      warning(sprintf("[Session %s] Survey record is NULL for survey: %s", 
-                      session_id, survey_name))
-    }
-    
-    if (nrow(survey_record) == 0) {
+    if (is.null(survey_record) || nrow(survey_record) == 0) {
       warning(sprintf("[Session %s] Survey not found in database: %s", 
                       session_id, survey_name))
       hide_and_show_message("waitingMessage", "surveyNotFoundMessage")
       return()
     }
     
-    # Store survey configuration and JSON
+    # Store survey configuration and parse JSON
     rv$survey_config <- survey_record
-    
-    # Parse config_json if present with detailed error handling
     if (!is.null(survey_record$config_json)) {
       tryCatch({
-        message(sprintf("[Session %s] Parsing JSON config for survey: %s", 
-                        session_id, survey_name))
         rv$dynamic_config <- jsonlite::fromJSON(survey_record$config_json)
       }, error = function(e) {
-        warning(sprintf("[Session %s] Error parsing JSON config: %s\nJSON config content: %s", 
-                        session_id, e$message, survey_record$config_json))
+        warning(sprintf("[Session %s] Error parsing JSON config: %s", 
+                        session_id, e$message))
       })
     }
     
-    # Load and send survey JSON to client with enhanced error handling
+    # Load survey JSON
     tryCatch({
-      message(sprintf("[Session %s] Loading survey JSON for survey: %s", 
-                      session_id, survey_name))
-      
       survey_json <- survey_record$json
-      
-      session$sendCustomMessage("loadSurvey", jsonlite::fromJSON(survey_json, simplifyVector = FALSE))
-      
+      session$sendCustomMessage("loadSurvey", 
+                                jsonlite::fromJSON(survey_json, simplifyVector = FALSE))
       shinyjs::hide("waitingMessage", anim = TRUE, animType = "fade", time = 1)
     }, error = function(e) {
-      warning(sprintf("[Session %s] Error loading survey JSON: %s\nJSON content: %s", 
-                      session_id, e$message, substr(survey_json, 1, 100)))
+      warning(sprintf("[Session %s] Error loading survey JSON: %s", 
+                      session_id, e$message))
     })
   })
   
@@ -353,20 +341,22 @@ surveyServer <- function(input = NULL,
                                          required_cols = config$group_id_col)
     }
     
-    # CASE 1: Assign participant ID in URL query with no selections
-    if (!config$select_group && is.null(config$choices_col) && 
-        !is.null(config$group_id_col) && !is.null(config$group_id_table_name)) {
-      
-      group_id_val <- handle_group_value(query[[config$group_id_col]])
-      if (!is.null(group_id_val)) {
-        is_valid_id <- validate_group_value(group_id_val, group_id_table, 
-                                            config$group_id_col, "participant ID")
-        if (!is_valid_id) {
-          hide_and_show_message("waitingMessage", "invalidParticipantMessage")
-          return()
-        }
-        rv$participant_id <- group_id_val
+    # CASE 1: Assigned group in URL with no selections
+    if (!config$select_group) {
+      group_val <- handle_group_value(query[[config$group_col]])
+      if (is.null(group_val)) {
+        hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
+        return()
       }
+      
+      # Validate against table data
+      if (!group_val %in% table_data[[config$group_col]]) {
+        hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
+        return()
+      }
+      
+      # Store valid group value
+      rv$group_value <- group_val
     }
     
     # CASE 2: Select group from a database table with no additional choices
@@ -376,7 +366,7 @@ surveyServer <- function(input = NULL,
       }
     }
     
-    # CASE 3: Assign group in URL query and select filtered choices
+    # CASE 3: Assign group in URL and select filtered choices
     else if (!config$select_group && !is.null(config$choices_col)) {
       group_val <- handle_group_value(query[[config$group_col]])
       
@@ -398,7 +388,13 @@ surveyServer <- function(input = NULL,
       # Handle any existing group selection
       selected_group <- query[[config$group_col]]
       if (!is.null(selected_group)) {
-        group_val <- resolve_token(selected_group)
+        
+        if (token_active) {
+          group_val <- resolve_token(selected_group)
+        } else {
+          group_val <- selected_group
+        }
+        
         if (length(group_val) > 0 && group_val %in% table_data[[config$group_col]]) {
           filtered_data <- table_data[table_data[[config$group_col]] == group_val, ]
           update_survey_choices(config$choices_col, filtered_data[[config$choices_col]])
@@ -406,14 +402,14 @@ surveyServer <- function(input = NULL,
       }
     }
     
-    # CASE 5: Select group and additional choices with participant tracking
-    if (config$select_group && !is.null(config$choices_col) && 
-        !is.null(config$group_id_col) && !is.null(config$group_id_table_name)) {
+    # CASE 5: Select group and additional choices with group ID tracking
+    else if (config$select_group && !is.null(config$choices_col) && 
+             !is.null(config$group_id_col) && !is.null(config$group_id_table_name)) {
       
-      # Step 1: Handle participant ID validation using new function
-      participant_id_val <- handle_participant_id(query[[config$group_id_col]])
-      if (is.null(participant_id_val)) {
-        return()  # Exit if participant validation fails
+      # Step 1: Handle group ID validation
+      group_id_val <- handle_group_id(query[[config$group_id_col]])
+      if (is.null(group_id_val)) {
+        return()  # Exit if group ID validation fails
       }
       
       # Step 2: Initialize group selection dropdown
@@ -424,7 +420,7 @@ surveyServer <- function(input = NULL,
       # Step 3: Handle existing group selection and update choices
       selected_group <- query[[config$group_col]]
       if (!is.null(selected_group)) {
-        group_val <- handle_group_value(selected_group)  # Use original group handling
+        group_val <- handle_group_value(selected_group)
         if (!is.null(group_val)) {
           filtered_data <- table_data[table_data[[config$group_col]] == group_val, ]
           update_survey_choices(config$choices_col, filtered_data[[config$choices_col]])
@@ -467,12 +463,23 @@ surveyServer <- function(input = NULL,
       
       # Add group value if it was set from URL
       if (!is.null(rv$group_value) && !is.null(rv$dynamic_config$group_col)) {
-        data[[rv$dynamic_config$group_col]] <- rv$group_value
+        # If data is a single row (list)
+        if (is.list(data) && !is.data.frame(data)) {
+          data[[rv$dynamic_config$group_col]] <- rv$group_value
+        }
+        # If data is multiple rows (data frame)
+        else if (is.data.frame(data)) {
+          data[[rv$dynamic_config$group_col]] <- rep(rv$group_value, nrow(data))
+        }
       }
       
-      # Add participant ID if available
-      if (!is.null(rv$participant_id) && !is.null(rv$dynamic_config$group_id_col)) {
-        data[[rv$dynamic_config$group_id_col]] <- rv$participant_id
+      # Add group ID if available
+      if (!is.null(rv$group_id) && !is.null(rv$dynamic_config$group_id_col)) {
+        if (is.list(data) && !is.data.frame(data)) {
+          data[[rv$dynamic_config$group_id_col]] <- rv$group_id
+        } else if (is.data.frame(data)) {
+          data[[rv$dynamic_config$group_id_col]] <- rep(rv$group_id, nrow(data))
+        }
       }
       
       # Store raw survey data
@@ -492,21 +499,26 @@ surveyServer <- function(input = NULL,
     })
   })
   
-  # Helper function to process survey data for display
+  # Process survey data for display
   process_survey_data <- function(data, session_id) {
     if (is.null(data)) return(NULL)
     
     # Convert data to data frame if it's not already
     if (!is.data.frame(data)) {
-      data <- as.data.frame(data, stringsAsFactors = FALSE)
+      data <- as.data.frame(t(unlist(data)), stringsAsFactors = FALSE)
+    }
+    
+    # Ensure group value is included
+    if (!is.null(rv$group_value) && !is.null(rv$dynamic_config$group_col)) {
+      data[[rv$dynamic_config$group_col]] <- gsub("_", " ", rv$group_value)
     }
     
     # Add session ID to data
     data$session_id <- session_id
     
-    # Add participant ID if available
-    if (!is.null(rv$participant_id) && !is.null(rv$dynamic_config$group_id_col)) {
-      data[[rv$dynamic_config$group_id_col]] <- rv$participant_id
+    # Add group ID if available
+    if (!is.null(rv$group_id) && !is.null(rv$dynamic_config$group_id_col)) {
+      data[[rv$dynamic_config$group_id_col]] <- gsub("_", " ", rv$group_id)
     }
     
     # If data is multirow, then add row number

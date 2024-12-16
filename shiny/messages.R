@@ -86,6 +86,12 @@ messageUI <- function() {
       class = "message-container",
       style = "display: none;",
       div(class = "error-message", "❌ Survey Undefined")
+    ),
+    div(
+      id = "invalidGroupIdMessage",
+      class = "message-container",
+      style = "display: none;",
+      div(class = "error-message", "❌ Invalid Group ID")
     )
   )
 }
