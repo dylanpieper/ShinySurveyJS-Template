@@ -28,12 +28,6 @@ The current implementation of ShinySurveyJS specifically uses the [SurveyJS jQue
     -   Enhances security by obscuring direct access and only accepting valid tokens
 -   PostgreSQL cloud platforms like [Supabase](https://supabase.com/) offer free and paid database solutions
 
-## Prerequisites
-
--   R and RStudio (or your favorite IDE)
--   PostgreSQL database (or any DBI-compatible database)
--   Basic understanding of Shiny, SQL, and JavaScript
-
 ## Get Started
 
 1.  Clone the repository:
