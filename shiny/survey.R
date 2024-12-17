@@ -396,28 +396,12 @@ surveyServer <- function(input = NULL,
                                          required_cols = config$group_id_col)
     }
     
-    # CASE 1: Assigned group in URL with no selections
-    if (!config$select_group) {
+    # CASE 1: Assign group in URL with no selections
+    if (!config$select_group && is.null(config$choices_col)) {
       group_val <- handle_group_value(query[[config$group_col]])
       if (is.null(group_val)) {
         hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
         return()
-      }
-      
-      # Validate against table data
-      if (!group_val %in% table_data[[config$group_col]]) {
-        hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
-        return()
-      }
-      
-      # Store valid group value
-      rv$group_value <- group_val
-      
-      selected_group <- query[[config$group_col]]
-      if (!is.null(selected_group)) {
-        if (token_active) {
-          group_val <- resolve_token(selected_group)
-        }
       }
       
       # Update the hidden text for surveyjs json reactivity
@@ -434,10 +418,16 @@ surveyServer <- function(input = NULL,
     # CASE 3: Assign group in URL and select filtered choices
     else if (!config$select_group && !is.null(config$choices_col)) {
       group_val <- handle_group_value(query[[config$group_col]])
+      if (is.null(group_val)) {
+        hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
+        return()
+      }
       
-      if (!is.null(group_val) && group_val %in% table_data[[config$group_col]]) {
+      if (group_val %in% table_data[[config$group_col]]) {
         filtered_data <- table_data[table_data[[config$group_col]] == group_val, ]
         update_survey_choices(config$choices_col, filtered_data[[config$choices_col]])
+        # Add text update similar to Case 1
+        update_survey_text(config$group_col, gsub("_", " ", group_val))
       }
     }
     
@@ -453,14 +443,8 @@ surveyServer <- function(input = NULL,
       # Handle any existing group selection
       selected_group <- query[[config$group_col]]
       if (!is.null(selected_group)) {
-        
-        if (token_active) {
-          group_val <- resolve_token(selected_group)
-        } else {
-          group_val <- selected_group
-        }
-        
-        if (length(group_val) > 0 && group_val %in% table_data[[config$group_col]]) {
+        group_val <- handle_group_value(selected_group)
+        if (!is.null(group_val) && group_val %in% table_data[[config$group_col]]) {
           filtered_data <- table_data[table_data[[config$group_col]] == group_val, ]
           update_survey_choices(config$choices_col, filtered_data[[config$choices_col]])
         }
@@ -471,22 +455,26 @@ surveyServer <- function(input = NULL,
     else if (config$select_group && !is.null(config$choices_col) && 
              !is.null(config$group_id_col) && !is.null(config$group_id_table_name)) {
       
-      # Step 1: Handle group ID validation
+      # Handle group ID validation
       group_id_val <- handle_group_id(query[[config$group_id_col]])
       if (is.null(group_id_val)) {
-        return()  # Exit if group ID validation fails
+        hide_and_show_message("waitingMessage", "invalidGroupIdMessage")
+        return()
       }
       
-      # Step 2: Initialize group selection dropdown
+      # Initialize group selection dropdown
       if (config$group_col %in% names(table_data)) {
         update_survey_choices(config$group_col, table_data[[config$group_col]])
       }
       
-      # Step 3: Handle existing group selection and update choices
+      # Update the hidden text for group ID
+      update_survey_text(config$group_id_col, gsub("_", " ", group_id_val))
+      
+      # Handle existing group selection and update choices
       selected_group <- query[[config$group_col]]
       if (!is.null(selected_group)) {
         group_val <- handle_group_value(selected_group)
-        if (!is.null(group_val)) {
+        if (!is.null(group_val) && group_val %in% table_data[[config$group_col]]) {
           filtered_data <- table_data[table_data[[config$group_col]] == group_val, ]
           update_survey_choices(config$choices_col, filtered_data[[config$choices_col]])
         }
