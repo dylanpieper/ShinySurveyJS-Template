@@ -198,6 +198,10 @@ To prevent user load, the asynchronous setup process is randomly assigned a time
 
 Easily change the database driver in `database.R` to use any database system compatible with the `DBI` package (see [list of backends](https://github.com/r-dbi/backends#readme)). The `RPostgres` package is used by default.
 
+## Publishing
+
+The default Shiny app settings are found in the `shiny/shiny.R` file, including the host, port, and number of workers. It's recommended to setup the app in a containerized environment on a cloud platform like [Shinyapps.io](https://www.shinyapps.io/) or [Azure Web Apps](https://azure.microsoft.com/en-us/products/app-service/web). When scaling, optimize the app by adding traffic monitoring, testing different networking configurations, testing the app's performance under heavy loads, and node balancing.
+
 ## Roadmap
 
 -   ✔️ Friendly initialization UI
