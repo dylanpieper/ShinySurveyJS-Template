@@ -191,8 +191,8 @@ If the `tokens` table does not exist yet, the app will automatically create it. 
 To prevent user load, the asynchronous setup process is randomly assigned a time delay between 1 and 10 seconds before running. The worker runs in the background when the app is initialized and will not interfere with the user experience.
 
 2.  Access survey with URL query parameters:
-    -   Without tokens (same as JSON file name): `/?survey=name`
-    -   With tokens: `/?survey=token`
+    -   Without tokens (same as survey name): `/?survey=name`
+    -   With tokens (in the database table): `/?survey=token`
 
 ## Database Driver
 
