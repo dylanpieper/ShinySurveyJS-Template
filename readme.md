@@ -128,7 +128,7 @@ These examples show how to use dynamic fields to track participants and/or updat
     /?survey=survey_llm&pid=Sam_Altman
     ```
 
-    -   Use curly brackets with a hidden `pid` field in the json to reactively display the URL query parameters in the UI
+    -   Use curly brackets with a hidden `pid` field in the json to reactively display the URL query parameter strings
 
     -   You are not allowed to enter an invalid `pid` to avoid user manipulation
 
