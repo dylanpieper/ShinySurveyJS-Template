@@ -200,7 +200,7 @@ Easily change the database driver in `database.R` to use any database system com
 
 ## Publishing
 
-The default Shiny app settings are found in the `shiny/shiny.R` file, including the host, port, and number of workers. It's recommended to setup the app in a containerized environment on a cloud platform like [Shinyapps.io](https://www.shinyapps.io/) or [Azure Web Apps](https://azure.microsoft.com/en-us/products/app-service/web). When scaling, optimize the app by adding traffic monitoring, testing different networking configurations, testing the app's performance under heavy loads, and node balancing. Additionally, consider adjusting the behavior of the future asynchronous setup process. Consider adjusting the system sleep `Sys.sleep(runif(1, 0, 10))` timer range or modifying the setup process to fit your needs.
+The default Shiny app settings are found in the `shiny/shiny.R` file, including the host, port, and number of workers. It's recommended to setup the app in a containerized environment on a cloud platform like [Shinyapps.io](https://www.shinyapps.io/) or [Azure Web Apps](https://azure.microsoft.com/en-us/products/app-service/web). When scaling, optimize the app by adding traffic monitoring, testing different networking configurations, testing the app's performance under heavy loads, and node balancing. Additionally, consider adjusting the behavior of the future asynchronous setup process. Consider adjusting the system sleep `Sys.sleep(runif(1, 0, 10))` or modifying the setup process to fit your needs.
 
 ## Roadmap
 
