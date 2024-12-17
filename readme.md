@@ -64,7 +64,7 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
                    "DBI", "RPostgres", "pool", "future", "promises", "DT"))
 ```
 
-## Dynamic Field Configurations
+## Dynamic Fields
 
 First, run the queries in `setup_example.sql` to create the setup the `surveys`, `config_pid`, `config_vacation`, `config_doctor_clinic`, and `config_staged_json` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
 
@@ -156,7 +156,7 @@ These examples show how to use dynamic fields to track participants and/or updat
     /?survey=survey_vacation_select_group&pid=Sam_Altman
     ```
 
-6.  **survey_doctor_clinic**: Assign group ID to doctors in URL query with a selection for the clinic they worked in that day
+6.  **survey_doctor_clinic**: Assign group ID to doctors in URL query with a selection for the clinic they worked in
 
     ```         
     /?survey=survey_doctor_clinic&doctor=Sarah_Chen
@@ -194,7 +194,7 @@ runApp()
 
 If the `tokens` table does not exist yet, the app will automatically create it. The app will also generate tokens for each survey and store them in the database.
 
-To prevent user load, the asynchronous setup process, which runs independently from the main application, is randomly assigned a time delay between 1 and 10 seconds before running. The worker runs in the background when the app is initialized and will not interfere with the user experience, similar to how a background download continues while you browse other websites.
+To prevent user load, the asynchronous setup process, is randomly assigned a time delay between 1 and 10 seconds before running. The worker runs in the background when the app is initialized and will not interfere with the user experience.
 
 2.  Access survey with URL query parameters:
     -   Without tokens (same as JSON file name): `/?survey=name`

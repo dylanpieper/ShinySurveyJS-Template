@@ -167,7 +167,7 @@ VALUES
      }'::json,
      '{
          "title": "Clinical Survey",
-         "description": "Assign group ID to doctors in URL query with a selection for the clinic they worked in that day",
+         "description": "Assign group ID to doctors in URL query with a selection for the clinic they worked in",
          "elements": [
             {
                  "type": "html",
