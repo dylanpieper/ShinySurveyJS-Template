@@ -6,7 +6,7 @@ Host multiple surveys in a single **Shiny** app using **SurveyJS** and **Postgre
 
 ## Overview
 
-ShinySurveyJS integrates the front-end flexibility of the [SurveyJS](https://surveyjs.io/) Javascript library with the back-end capabilities of [Shiny](https://shiny.posit.co/) to plug-in to a database and create dynamic survey user experiences. While there are incredible Shiny survey packages like [surveydown](https://github.com/surveydown-dev/surveydown) and [shinysurveys](https://github.com/jdtrat/shinysurveys), they build the UI in R and are limited to a single survey per server.
+ShinySurveyJS integrates the front-end flexibility of the [SurveyJS](https://surveyjs.io/) Javascript library with the back-end capabilities of [Shiny](https://shiny.posit.co/) to interface with a database and create dynamic survey user experiences. While there are incredible Shiny survey packages like [surveydown](https://github.com/surveydown-dev/surveydown) and [shinysurveys](https://github.com/jdtrat/shinysurveys), they build the UI in R and are limited to a single survey per server.
 
 ## SurveyJS
 
