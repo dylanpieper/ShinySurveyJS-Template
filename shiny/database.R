@@ -292,7 +292,6 @@ db_setup <- R6::R6Class(
       # Read survey data with caching
       cache_key <- paste0("survey_", survey_table_name)
       if (is.null(private$table_cache[[cache_key]])) {
-        # Changed from self$read_table to self$db_ops$read_table
         surveys_data <- self$db_ops$read_table(survey_table_name)
         private$table_cache[[cache_key]] <- surveys_data
       } else {
@@ -311,15 +310,32 @@ db_setup <- R6::R6Class(
       # Store original json for comparison later
       original_json <- surveys_data$json
       
-      # Create a lookup for staged_json_table data
-      staged_tables <- unique(surveys_data$staged_json_table_name)
+      # Initialize list to store unique table names
+      staged_tables <- character(0)
       staged_data_lookup <- list()
+      
+      # Process each survey row to find unique tables
+      for (i in seq_len(nrow(surveys_data))) {
+        json_str <- surveys_data$staged_json[i]
+        
+        # Find all patterns matching table_name["field_name", "column_name"]
+        patterns <- unlist(regmatches(json_str, 
+                                      gregexpr('\\w+\\["[^"]+", "[^"]+"\\]', 
+                                               json_str)))
+        
+        # Extract table names from patterns
+        for (pattern in patterns) {
+          table_name <- regmatches(pattern, 
+                                   regexec('(\\w+)\\["([^"]+)", "([^"]+)"\\]', 
+                                           pattern))[[1]][2]
+          staged_tables <- unique(c(staged_tables, table_name))
+        }
+      }
       
       # Cache and load all required staged json tables
       for (table_name in staged_tables) {
         cache_key <- paste0("staged_", table_name)
         if (is.null(private$table_cache[[cache_key]])) {
-          # Changed from self$read_table to self$db_ops$read_table
           table_data <- self$db_ops$read_table(table_name)
           private$table_cache[[cache_key]] <- table_data
         }
@@ -330,7 +346,6 @@ db_setup <- R6::R6Class(
       processed_json <- vector("character", nrow(surveys_data))
       for (i in seq_len(nrow(surveys_data))) {
         json_str <- surveys_data$staged_json[i]
-        staged_json_data <- staged_data_lookup[[surveys_data$staged_json_table_name[i]]]
         
         # Find all patterns matching table_name["field_name", "column_name"]
         patterns <- unlist(regmatches(json_str, 
@@ -339,7 +354,7 @@ db_setup <- R6::R6Class(
         
         # Process each pattern
         for (pattern in patterns) {
-          json_str <- private$process_match(pattern, json_str, staged_json_data)
+          json_str <- private$process_match(pattern, json_str, staged_data_lookup)
         }
         
         # Parse and re-serialize to ensure proper JSON formatting
@@ -361,7 +376,7 @@ db_setup <- R6::R6Class(
       
       # Compare new JSON with original JSON and only write if different
       changed_records <- surveys_data[surveys_data$json != original_json, ]
-
+      
       # Write to surveys database
       if (nrow(changed_records) > 0) {
         self$db_ops$write_to_surveys_table(changed_records |>
@@ -603,33 +618,39 @@ db_setup <- R6::R6Class(
       sprintf("[Session %s] %s", self$session_id, msg)
     },
     
-    # Move process_match here
-    process_match = function(pattern, json_str, staged_json_data) {
+    # Process a match in the staged JSON data
+    process_match = function(pattern, json_str, staged_data_lookup) {
       parts <- regmatches(pattern, regexec('(\\w+)\\["([^"]+)", "([^"]+)"\\]', pattern))[[1]]
       
       if (length(parts) == 4) {
+        table_name <- parts[2]
         field_name <- parts[3]
         column_name <- parts[4]
         
-        matching_row <- staged_json_data[gsub('"', '', staged_json_data$field_name) == field_name, ]
+        # Get the corresponding staged data table
+        staged_json_data <- staged_data_lookup[[table_name]]
         
-        if (nrow(matching_row) > 0) {
-          replacement_value <- matching_row[[column_name]]
+        if (!is.null(staged_json_data)) {
+          matching_row <- staged_json_data[gsub('"', '', staged_json_data$field_name) == field_name, ]
           
-          # If the replacement value looks like a JSON array or object string, parse it
-          if (grepl("^\\[|^\\{", replacement_value)) {
-            tryCatch({
-              parsed_value <- jsonlite::fromJSON(replacement_value)
-              replacement_value <- jsonlite::toJSON(parsed_value, auto_unbox = TRUE)
-            }, error = function(e) {
+          if (nrow(matching_row) > 0) {
+            replacement_value <- matching_row[[column_name]]
+            
+            # If the replacement value looks like a JSON array or object string, parse it
+            if (grepl("^\\[|^\\{", replacement_value)) {
+              tryCatch({
+                parsed_value <- jsonlite::fromJSON(replacement_value)
+                replacement_value <- jsonlite::toJSON(parsed_value, auto_unbox = TRUE)
+              }, error = function(e) {
+                replacement_value <- jsonlite::toJSON(replacement_value, auto_unbox = TRUE)
+              })
+            } else {
               replacement_value <- jsonlite::toJSON(replacement_value, auto_unbox = TRUE)
-            })
-          } else {
-            replacement_value <- jsonlite::toJSON(replacement_value, auto_unbox = TRUE)
+            }
+            
+            # Replace the pattern with the actual value
+            json_str <- gsub(pattern, replacement_value, json_str, fixed = TRUE)
           }
-          
-          # Replace the pattern with the actual value
-          json_str <- gsub(pattern, replacement_value, json_str, fixed = TRUE)
         }
       }
       return(json_str)

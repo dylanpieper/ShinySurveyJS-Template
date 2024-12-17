@@ -3,7 +3,6 @@ CREATE TABLE surveys (
     id SERIAL PRIMARY KEY,
     survey_name TEXT NOT NULL,
     config_json JSON,
-    staged_json_table_name TEXT,
     staged_json TEXT,
     json text NOT NULL,
     active BOOLEAN DEFAULT TRUE,
@@ -18,392 +17,411 @@ CREATE TABLE surveys (
 INSERT INTO surveys (survey_name, config_json, json)
 VALUES 
     ('survey_llm', 
-    '{
-        "table_name": "config_pid",
-        "group_col": "pid",
-        "select_group": false
-    }'::json,
-    '{
-        "title": "LLM Survey",
-        "description": "Assign participant ID in URL query with no selections for group or additional choices",
-        "elements": [
-            {
-                "type": "html",
-                "visibleIf": "{pid} notempty",
-                "html": "Hi, welcome to the survey {pid}"
-            },
-            {
-                "type": "radiogroup",
-                "name": "llm_provider", 
-                "title": "Who is your favorite Large Language Model (LLM) provider?",
-                "choices": ["OpenAI", "Anthropic", "Google"],
-                "hasOther": true,
-                "isRequired": true
-            },
-            {
-                "type": "text",
-                "name": "pid",
-                "visible": false
-            }
-        ]
-    }'),
+     '{
+         "table_name": "config_pid",
+         "group_col": "pid",
+         "select_group": false
+     }'::json,
+     '{
+         "title": "LLM Survey",
+         "description": "Assign participant ID in URL query with no selections for group or additional choices",
+         "elements": [
+             {
+                 "type": "html",
+                 "visibleIf": "{pid} notempty",
+                 "html": "Hi, welcome to the survey {pid}"
+             },
+             {
+                 "type": "radiogroup",
+                 "name": "llm_provider", 
+                 "title": "Who is your favorite Large Language Model (LLM) provider?",
+                 "choices": ["OpenAI", "Anthropic", "Google"],
+                 "hasOther": true,
+                 "isRequired": true
+             },
+             {
+                 "type": "text",
+                 "name": "pid",
+                 "visible": false
+             }
+         ]
+     }'),
     
     ('survey_vacation', 
-    '{
-        "table_name": "config_vacation",
-        "group_col": "country",
-        "select_group": true
-    }'::json,
-    '{
-        "title": "Vacation Survey",
-        "description": "Select group (country) from a database table with no additional choices or participant tracking",
-        "elements": [
-            {
-                "type": "dropdown",
-                "name": "country",
-                "title": "If you could plan your dream vacation, which country would you visit?",
-                "choices": [],
-                "isRequired": true
-            }
-        ]
-    }'),
+     '{
+         "table_name": "config_vacation",
+         "group_col": "country",
+         "select_group": true
+     }'::json,
+     '{
+         "title": "Vacation Survey",
+         "description": "Select group (country) from a database table with no additional choices or participant tracking",
+         "elements": [
+             {
+                 "type": "dropdown",
+                 "name": "country",
+                 "title": "If you could plan your dream vacation, which country would you visit?",
+                 "choices": [],
+                 "isRequired": true
+             }
+         ]
+     }'),
     
     ('survey_vacation_query_group',
-    '{
-        "table_name": "config_vacation",
-        "group_col": "country",
-        "select_group": false,
-        "choices_col": "city"
-    }'::json,
-    '{
-        "title": "Vacation Survey",
-        "description": "Assign group (country) in URL query and select filtered choices (city) from a database table",
-        "elements": [
-            {
-                "type": "ranking",
-                "name": "city",
-                "title": "Rank the cities you would like to visit on your next vacation:",
-                "choices": [],
-                "isRequired": true
-            }
-        ]
-    }'),
+     '{
+         "table_name": "config_vacation",
+         "group_col": "country",
+         "select_group": false,
+         "choices_col": "city"
+     }'::json,
+     '{
+         "title": "Vacation Survey",
+         "description": "Assign group (country) in URL query and select filtered choices (city) from a database table",
+         "elements": [
+             {
+                 "type": "ranking",
+                 "name": "city",
+                 "title": "Rank the cities you would like to visit on your next vacation:",
+                 "choices": [],
+                 "isRequired": true
+             }
+         ]
+     }'),
     
     ('survey_vacation_select_group',
-    '{
-        "table_name": "config_vacation",
-        "group_col": "country",
-        "select_group": true,
-        "choices_col": "city"
-    }'::json,
-    '{
-        "title": "Vacation Survey",
-        "description": "Select group (country) and additional choices (city) from a database table",
-        "elements": [
-            {
-                "type": "dropdown",
-                "name": "country",
-                "title": "If you could plan your dream vacation, which country would you visit?",
-                "choices": [],
-                "isRequired": true
-            },
-            {
-                "type": "ranking",
-                "name": "city",
-                "title": "Rank the cities you would like to visit:",
-                "choices": [],
-                "isRequired": true,
-                "visibleIf": "{country} notempty"
-            }
-        ]
-    }'),
+     '{
+         "table_name": "config_vacation",
+         "group_col": "country",
+         "select_group": true,
+         "choices_col": "city"
+     }'::json,
+     '{
+         "title": "Vacation Survey",
+         "description": "Select group (country) and additional choices (city) from a database table",
+         "elements": [
+             {
+                 "type": "dropdown",
+                 "name": "country",
+                 "title": "If you could plan your dream vacation, which country would you visit?",
+                 "choices": [],
+                 "isRequired": true
+             },
+             {
+                 "type": "ranking",
+                 "name": "city",
+                 "title": "Rank the cities you would like to visit:",
+                 "choices": [],
+                 "isRequired": true,
+                 "visibleIf": "{country} notempty"
+             }
+         ]
+     }'),
     
     ('survey_vacation_group_id',
-    '{
-        "table_name": "config_vacation",
-        "group_col": "country",
-        "select_group": true,
-        "group_id_table_name": "config_pid",
-        "group_id_col": "pid",
-        "choices_col": "city"
-    }'::json,
-    '{
-        "title": "Vacation Survey",
-        "description": "Select group (country) and additional choices (city) from a database table with participant tracking",
-        "elements": [
-            {
-                "type": "dropdown",
-                "name": "country",
-                "title": "If you could plan your dream vacation, which country would you visit?",
-                "choices": [],
-                "isRequired": true
-            },
-            {
-                "type": "ranking",
-                "name": "city",
-                "title": "Rank the cities you would like to visit:",
-                "choices": [],
-                "isRequired": true,
-                "visibleIf": "{country} notempty"
-            }
-        ]
-    }'),
+     '{
+         "table_name": "config_vacation",
+         "group_col": "country",
+         "select_group": true,
+         "group_id_table_name": "config_pid",
+         "group_id_col": "pid",
+         "choices_col": "city"
+     }'::json,
+     '{
+         "title": "Vacation Survey",
+         "description": "Select group (country) and additional choices (city) from a database table with participant tracking",
+         "elements": [
+             {
+                 "type": "html",
+                 "visibleIf": "{pid} notempty",
+                 "html": "Hi, welcome to the survey {pid}"
+             },
+             {
+                 "type": "dropdown",
+                 "name": "country",
+                 "title": "If you could plan your dream vacation, which country would you visit?",
+                 "choices": [],
+                 "isRequired": true
+             },
+             {
+                 "type": "ranking",
+                 "name": "city",
+                 "title": "Rank the cities you would like to visit:",
+                 "choices": [],
+                 "isRequired": true,
+                 "visibleIf": "{country} notempty"
+             },
+             {
+                 "type": "text",
+                 "name": "pid",
+                 "visible": false
+             }
+         ]
+     }'),
     
-    ('survey_person_id',
-    '{
-        "table_name": "config_doctor_clinic",
-        "group_col": "doctor",
-        "select_group": false,
-        "choices_col": "clinic"
-    }'::json,
-    '{
-        "title": "Person ID Survey",
-        "description": "Assign person ID to doctors in URL query with a selection for the clinic they worked in that day",
-        "elements": [
+    ('survey_doctor_clinic',
+     '{
+         "table_name": "config_doctor_clinic",
+         "group_col": "doctor",
+         "select_group": false,
+         "choices_col": "clinic"
+     }'::json,
+     '{
+         "title": "Clinical Survey",
+         "description": "Assign group ID to doctors in URL query with a selection for the clinic they worked in that day",
+         "elements": [
             {
-                "type": "radiogroup",
-                "name": "clinic",
-                "title": "Where did you see the client today?",
-                "choices": [],
-                "isRequired": true
-            },
-            {
-                "type": "dropdown",
-                "name": "session_type",
-                "title": "Type of Session",
-                "isRequired": true,
-                "choices": [
-                    "Individual Therapy",
-                    "Group Therapy",
-                    "Crisis Intervention",
-                    "Follow-up"
-                ]
-            },
-            {
-                "type": "matrix",
-                "name": "symptoms",
-                "title": "Rate current symptoms",
-                "isRequired": true,
-                "columns": [
-                    "None",
-                    "Mild",
-                    "Moderate", 
-                    "Severe"
-                ],
-                "rows": [
-                    "Anxiety",
-                    "Depression",
-                    "Sleep Issues"
-                ]
-            },
-            {
-                "type": "checkbox",
-                "name": "interventions",
-                "title": "Interventions Used",
-                "isRequired": true,
-                "choices": [
-                    "Narrative Therapy",
-                    "Mindfulness",
-                    "Crisis Management",
-                    "Skills Training"
-                ]
-            },
-            {
-                "type": "text",
-                "name": "notes",
-                "title": "Session Notes",
-                "isRequired": true,
-            },
-            {
-                "type": "dropdown",
-                "name": "next_session",
-                "title": "Next Session",
-                "isRequired": true,
-                "choices": [
-                    "1 week",
-                    "2 weeks",
-                    "As needed"
-                ]
-            }
-        ],
-        "showQuestionNumbers": "off",
-        "widthMode": "responsive"
-    }'),
+                 "type": "html",
+                 "visibleIf": "{doctor} notempty",
+                 "html": "Hi, welcome to the survey {doctor}"
+             },
+             {
+                 "type": "radiogroup",
+                 "name": "clinic",
+                 "title": "Where did you see the client today?",
+                 "choices": [],
+                 "isRequired": true
+             },
+             {
+                 "type": "dropdown",
+                 "name": "session_type",
+                 "title": "Type of Session",
+                 "isRequired": true,
+                 "choices": [
+                     "Individual Therapy",
+                     "Group Therapy",
+                     "Crisis Intervention",
+                     "Follow-up"
+                 ]
+             },
+             {
+                 "type": "matrix",
+                 "name": "symptoms",
+                 "title": "Rate current symptoms",
+                 "isRequired": true,
+                 "columns": [
+                     "None",
+                     "Mild",
+                     "Moderate", 
+                     "Severe"
+                 ],
+                 "rows": [
+                     "Anxiety",
+                     "Depression",
+                     "Sleep Issues"
+                 ]
+             },
+             {
+                 "type": "checkbox",
+                 "name": "interventions",
+                 "title": "Interventions Used",
+                 "isRequired": true,
+                 "choices": [
+                     "Narrative Therapy",
+                     "Mindfulness",
+                     "Crisis Management",
+                     "Skills Training"
+                 ]
+             },
+             {
+                 "type": "text",
+                 "name": "notes",
+                 "title": "Session Notes",
+                 "isRequired": true
+             },
+             {
+                 "type": "dropdown",
+                 "name": "next_session",
+                 "title": "Next Session",
+                 "isRequired": true,
+                 "choices": [
+                     "1 week",
+                     "2 weeks",
+                     "As needed"
+                 ]
+             },
+             {
+                 "type": "text",
+                 "name": "doctor",
+                 "visible": false
+             }
+         ],
+         "showQuestionNumbers": "off",
+         "widthMode": "responsive"
+     }'),
     
     ('survey_product_feedback', 
-    NULL,
-    '{
-    "title": "Product Feedback Survey",
-    "description": "Static survey with no dynamic fields",
-    "completedHtml": "<h3>Thank you for your valuable feedback!</h3>",
-    "pages": [
-        {
-            "name": "satisfaction",
-            "title": "Product Satisfaction",
-            "description": "Please tell us about your overall experience with our product",
-            "elements": [
-                {
-                    "type": "rating",
-                    "name": "product_satisfaction",
-                    "title": "Overall Satisfaction",
-                    "description": "How satisfied are you with your experience using our product?",
-                    "rateMin": 1,
-                    "rateMax": 5,
-                    "rateStep": 1,
-                    "minRateDescription": "Very Dissatisfied",
-                    "maxRateDescription": "Very Satisfied",
-                    "isRequired": true
-                },
-                {
-                    "type": "rating",
-                    "name": "product_quality",
-                    "title": "Product Quality",
-                    "description": "How would you rate the overall quality of our product?",
-                    "rateMin": 1,
-                    "rateMax": 5,
-                    "rateStep": 1,
-                    "minRateDescription": "Poor Quality",
-                    "maxRateDescription": "Excellent Quality",
-                    "isRequired": true
-                },
-                {
-                    "type": "radiogroup",
-                    "name": "recommend_product",
-                    "title": "Likelihood to Recommend",
-                    "description": "How likely are you to recommend our product to others?",
-                    "choices": [
-                        {
-                            "value": "definitely",
-                            "text": "Definitely would recommend"
-                        },
-                        {
-                            "value": "probably",
-                            "text": "Probably would recommend"
-                        },
-                        {
-                            "value": "maybe",
-                            "text": "Might or might not recommend"
-                        },
-                        {
-                            "value": "probably_not",
-                            "text": "Probably would not recommend"
-                        },
-                        {
-                            "value": "definitely_not",
-                            "text": "Definitely would not recommend"
-                        }
-                    ],
-                    "isRequired": true
-                }
-            ]
-        },
-        {
-            "name": "feedback",
-            "title": "Detailed Feedback",
-            "description": "Please share your specific thoughts about the product",
-            "elements": [
-                {
-                    "type": "comment",
-                    "name": "strengths",
-                    "title": "Product Strengths",
-                    "description": "What aspects of the product do you like the most?",
-                    "placeholder": "Please share what you enjoy about our product...",
-                    "rows": 3
-                },
-                {
-                    "type": "comment",
-                    "name": "improvements",
-                    "title": "Suggested Improvements",
-                    "description": "What aspects of the product could be improved?",
-                    "placeholder": "Please share your suggestions for improvement...",
-                    "rows": 3
-                }
-            ]
-        }
-    ],
-    "showQuestionNumbers": "off",
-    "showProgressBar": "top",
-    "progressBarType": "questions"
-}'),
+     NULL,
+     '{
+         "title": "Product Feedback Survey",
+         "description": "Static survey with no dynamic fields",
+         "completedHtml": "<h3>Thank you for your valuable feedback!</h3>",
+         "pages": [
+             {
+                 "name": "satisfaction",
+                 "title": "Product Satisfaction",
+                 "description": "Please tell us about your overall experience with our product",
+                 "elements": [
+                     {
+                         "type": "rating",
+                         "name": "product_satisfaction",
+                         "title": "Overall Satisfaction",
+                         "description": "How satisfied are you with your experience using our product?",
+                         "rateMin": 1,
+                         "rateMax": 5,
+                         "rateStep": 1,
+                         "minRateDescription": "Very Dissatisfied",
+                         "maxRateDescription": "Very Satisfied",
+                         "isRequired": true
+                     },
+                     {
+                         "type": "rating",
+                         "name": "product_quality",
+                         "title": "Product Quality",
+                         "description": "How would you rate the overall quality of our product?",
+                         "rateMin": 1,
+                         "rateMax": 5,
+                         "rateStep": 1,
+                         "minRateDescription": "Poor Quality",
+                         "maxRateDescription": "Excellent Quality",
+                         "isRequired": true
+                     },
+                     {
+                         "type": "radiogroup",
+                         "name": "recommend_product",
+                         "title": "Likelihood to Recommend",
+                         "description": "How likely are you to recommend our product to others?",
+                         "choices": [
+                             {
+                                 "value": "definitely",
+                                 "text": "Definitely would recommend"
+                             },
+                             {
+                                 "value": "probably",
+                                 "text": "Probably would recommend"
+                             },
+                             {
+                                 "value": "maybe",
+                                 "text": "Might or might not recommend"
+                             },
+                             {
+                                 "value": "probably_not",
+                                 "text": "Probably would not recommend"
+                             },
+                             {
+                                 "value": "definitely_not",
+                                 "text": "Definitely would not recommend"
+                             }
+                         ],
+                         "isRequired": true
+                     }
+                 ]
+             },
+             {
+                 "name": "feedback",
+                 "title": "Detailed Feedback",
+                 "description": "Please share your specific thoughts about the product",
+                 "elements": [
+                     {
+                         "type": "comment",
+                         "name": "strengths",
+                         "title": "Product Strengths",
+                         "description": "What aspects of the product do you like the most?",
+                         "placeholder": "Please share what you enjoy about our product...",
+                         "rows": 3
+                     },
+                     {
+                         "type": "comment",
+                         "name": "improvements",
+                         "title": "Suggested Improvements",
+                         "description": "What aspects of the product could be improved?",
+                         "placeholder": "Please share your suggestions for improvement...",
+                         "rows": 3
+                     }
+                 ]
+             }
+         ],
+         "showQuestionNumbers": "off",
+         "showProgressBar": "top",
+         "progressBarType": "questions"
+     }'),
 
     ('survey_protected_feedback',
-    NULL,
-    '{
-    "title": "Protected Feedback Survey",
-    "description": "Password protected survey example",
-    "firstPageIsStarted": true,
-    "startSurveyText": "Start Survey",
-    "pages": [
-        {
-            "name": "passwordPage",
-            "elements": [
-                {
-                    "type": "text",
-                    "name": "password",
-                    "title": {
-                        "default": "Thank you for entering the survey password",
-                        "visibleIf": "{password} = ''secret123''"
-                    },
-                    "isRequired": true
-                }
-            ],
-            "navigationButtonsVisibility": "show"
-        },
-        {
-            "name": "feedback",
-            "elements": [
-                {
-                    "type": "rating",
-                    "name": "meeting_rating",
-                    "title": "How would you rate the effectiveness of todays meeting?",
-                    "isRequired": true,
-                    "rateMax": 5
-                },
-                {
-                    "type": "checkbox",
-                    "name": "meeting_aspects",
-                    "title": "What aspects of the meeting were most valuable?",
-                    "isRequired": true,
-                    "choices": [
-                        "Presentation Content",
-                        "Group Discussion",
-                        "Q&A Session",
-                        "Networking Opportunities",
-                        "Project Updates"
-                    ]
-                },
-                {
-                    "type": "comment",
-                    "name": "suggestions",
-                    "title": "What suggestions do you have for future meetings?",
-                    "rows": 3
-                },
-                {
-                    "type": "boolean",
-                    "name": "follow_up",
-                    "title": "Would you like someone to follow up with you about any of your feedback?",
-                    "isRequired": true
-                },
-                {
-                    "type": "text",
-                    "name": "contact_info",
-                    "title": "If you would like a follow-up, please provide your contact information:",
-                    "visibleIf": "{follow_up} = true"
-                }
-            ],
-            "visibleIf": "{password} = ''secret123''"
-        }
-    ],
-    "showQuestionNumbers": "off"
-}');
+     NULL,
+     '{
+         "title": "Protected Feedback Survey",
+         "description": "Static survey with simple password protection built into the survey JSON",
+         "firstPageIsStarted": true,
+         "startSurveyText": "Start Survey",
+         "pages": [
+             {
+                 "name": "passwordPage",
+                 "elements": [
+                     {
+                         "type": "text",
+                         "name": "password",
+                         "title": {
+                             "default": "Thank you for entering the survey password",
+                             "visibleIf": "{password} = ''secret123''"
+                         },
+                         "isRequired": true
+                     }
+                 ],
+                 "navigationButtonsVisibility": "show"
+             },
+             {
+                 "name": "feedback",
+                 "elements": [
+                     {
+                         "type": "rating",
+                         "name": "meeting_rating",
+                         "title": "How would you rate the effectiveness of todays meeting?",
+                         "isRequired": true,
+                         "rateMax": 5
+                     },
+                     {
+                         "type": "checkbox",
+                         "name": "meeting_aspects",
+                         "title": "What aspects of the meeting were most valuable?",
+                         "isRequired": true,
+                         "choices": [
+                             "Presentation Content",
+                             "Group Discussion",
+                             "Q&A Session",
+                             "Networking Opportunities",
+                             "Project Updates"
+                         ]
+                     },
+                     {
+                         "type": "comment",
+                         "name": "suggestions",
+                         "title": "What suggestions do you have for future meetings?",
+                         "rows": 3
+                     },
+                     {
+                         "type": "boolean",
+                         "name": "follow_up",
+                         "title": "Would you like someone to follow up with you about any of your feedback?",
+                         "isRequired": true
+                     },
+                     {
+                         "type": "text",
+                         "name": "contact_info",
+                         "title": "If you would like a follow-up, please provide your contact information:",
+                         "visibleIf": "{follow_up} = true"
+                     }
+                 ],
+                 "visibleIf": "{password} = ''secret123''"
+             }
+         ],
+         "showQuestionNumbers": "off"
+     }');
 
-INSERT INTO surveys (survey_name, staged_json_table_name, staged_json, json)
+INSERT INTO surveys (survey_name, staged_json, json)
 VALUES (
   'survey_staged_json',
-  'config_staged_json',
   '{
-        "title": "Staged JSON Survey",
-        "description": "Basic demographic information survey with field choices from a staged JSON table",
+        "title": "Demographics Survey",
+        "description": "Static survey with field choices from a staged JSON table",
         "pages": [
             {
                 "name": "demographics",
@@ -732,19 +750,19 @@ CREATE TABLE config_staged_json (
 -- Insert configurations from the survey
 INSERT INTO config_staged_json (field_name, field_type, choices)
 VALUES 
-    ('"age_group"', 
-     '"radiogroup"',
+    ('age_group', 
+     'radiogroup',
      '["18-24", "25-34", "35-44", "45-54", "55-64", "65 or older"]'::jsonb
     ),
-    ('"gender"',
-     '"radiogroup"',
+    ('gender',
+     'radiogroup',
      '["Male", "Female", "Non-binary", "Transgender", "Prefer not to say"]'::jsonb
     ),
-    ('"education"',
-     '"dropdown"',
+    ('education',
+     'dropdown',
      '["High School or equivalent", "Some College", "Bachelor''s Degree", "Master''s Degree", "Doctorate", "Other"]'::jsonb
     ),
-    ('"employment"',
+    ('employment',
      '"checkbox"',
      '["Full-time employed", "Part-time employed", "Self-employed", "Student", "Retired", "Unemployed"]'::jsonb
     );
@@ -752,6 +770,11 @@ VALUES
 -- Create timestamp update triggers for all tables
 CREATE TRIGGER update_timestamp_trigger
     BEFORE UPDATE ON surveys
+    FOR EACH ROW
+    EXECUTE FUNCTION update_timestamp();
+    
+CREATE TRIGGER update_timestamp_trigger
+    BEFORE UPDATE ON tokens
     FOR EACH ROW
     EXECUTE FUNCTION update_timestamp();
 
