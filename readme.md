@@ -176,7 +176,7 @@ These examples show how to use dynamic fields to track participants and/or updat
 
 ## Tokenization
 
-Tokenization is a security process that replaces sensitive data like a survey name or an individual's name with non-sensitive placeholders like a randomly generated value or string.
+Tokenization is a security process that replaces sensitive data like a survey name or an individual's name with non-sensitive placeholders like a randomly generated string.
 
 Using tokens requires an additional table read to a look-up table, making it a slower process since each token must be converted back to its original data. Tokens are generated as a background task of the app using parallelization, meaning the work is split across multiple simultaneous processes for faster completion. If new tokens are created, users can access them on the next page load after the process runs. You can customize the tokenization algorithm in `shiny/tokens.R`.
 
