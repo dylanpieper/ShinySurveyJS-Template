@@ -12,9 +12,9 @@ ShinySurveyJS integrates the front-end flexibility of the [SurveyJS](https://sur
 
 [SurveyJS](https://surveyjs.io/) is a "a free and open-source MIT-licensed JavaScript form builder library that allows you to design dynamic, data-driven, multi-language survey forms".
 
-At its core is a powerful form builder engine, complemented by a user-friendly [visual editor](https://surveyjs.io/create-free-survey) and extensive [documentation](https://surveyjs.io/documentation). The framework's TypeScript foundation and reactive components ensure type safety and responsive design, while its platform-agnostic architecture integrates smoothly with any backend technology stack.
+At its core is a powerful form builder engine, complemented by a user-friendly [visual editor](https://surveyjs.io/create-free-survey) and extensive [documentation](https://surveyjs.io/documentation). Built on TypeScript with reactive components, the framework provides type safety and responsive design while working seamlessly with any backend or database.
 
-SurveyJS excels with advanced features including conditional logic and branching, robust input validation, a wide variety of question types, customizable themes, multi-page layouts, and multi-language support—all of which make it a versatile choice for building complex survey applications.
+SurveyJS's features include conditional logic and branching, robust input validation, a wide variety of question types, customizable themes, multi-page layouts, and multi-language support—all of which make it a versatile choice for building complex survey applications.
 
 The current implementation of ShinySurveyJS specifically uses the [SurveyJS jQuery Form Library](https://www.npmjs.com/package/survey-jquery).
 
