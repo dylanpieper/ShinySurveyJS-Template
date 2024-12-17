@@ -194,7 +194,7 @@ runApp()
 
 If the `tokens` table does not exist yet, the app will automatically create it. The app will also generate tokens for each survey and store them in the database.
 
-To prevent user load, the asynchronous setup process, is randomly assigned a time delay between 1 and 10 seconds before running. The worker runs in the background when the app is initialized and will not interfere with the user experience.
+To prevent user load, the asynchronous setup process is randomly assigned a time delay between 1 and 10 seconds before running. The worker runs in the background when the app is initialized and will not interfere with the user experience.
 
 2.  Access survey with URL query parameters:
     -   Without tokens (same as JSON file name): `/?survey=name`
