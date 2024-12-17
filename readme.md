@@ -6,7 +6,7 @@ Host multiple surveys in a single **Shiny** app using **SurveyJS** and **Postgre
 
 ## Overview
 
-ShinySurveyJS integrates the front-end flexibility of the [SurveyJS](https://surveyjs.io/) Javascript library with the back-end capabilities of [Shiny](https://shiny.posit.co/) to plug-in to a database and create dynamic survey user experiences. While there are excellent Shiny survey packages like [surveydown](https://github.com/surveydown-dev/surveydown) and [shinysurveys](https://github.com/jdtrat/shinysurveys), they build the UI in Shiny and are limited to a single survey per server.
+ShinySurveyJS integrates the front-end flexibility of the [SurveyJS](https://surveyjs.io/) Javascript library with the back-end capabilities of [Shiny](https://shiny.posit.co/) to plug-in to a database and create dynamic survey user experiences. While there are excellent Shiny survey packages like [surveydown](https://github.com/surveydown-dev/surveydown) and [shinysurveys](https://github.com/jdtrat/shinysurveys), they build the UI in R and are limited to a single survey per server.
 
 ## SurveyJS
 
@@ -14,7 +14,7 @@ ShinySurveyJS integrates the front-end flexibility of the [SurveyJS](https://sur
 
 At its core is a powerful form builder engine, complemented by a user-friendly [visual editor](https://surveyjs.io/create-free-survey) and extensive [documentation](https://surveyjs.io/documentation). Built on TypeScript with reactive components, the framework provides type safety and responsive design while working seamlessly with any backend or database.
 
-SurveyJS's features include conditional logic and branching, robust input validation, a wide variety of question types, customizable themes, multi-page layouts, and multi-language support—all of which make it a versatile choice for building complex survey applications.
+SurveyJS's features include conditional logic and branching, robust input validation, a wide variety of question types, customizable themes, multi-page layouts, and multi-language support—all of which make it a excellent choice for building complex survey applications.
 
 The current implementation of ShinySurveyJS specifically uses the [SurveyJS jQuery Form Library](https://www.npmjs.com/package/survey-jquery).
 
