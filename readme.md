@@ -6,13 +6,13 @@ Host multiple surveys in a single **Shiny** app using **SurveyJS** and **Postgre
 
 ## Overview
 
-ShinySurveyJS integrates the front-end flexibility of the [SurveyJS](https://surveyjs.io/) Javascript library with the back-end capabilities of [Shiny](https://shiny.posit.co/) to interface with a database and create dynamic survey user experiences. While there are incredible Shiny survey packages like [surveydown](https://github.com/surveydown-dev/surveydown) and [shinysurveys](https://github.com/jdtrat/shinysurveys), they build the UI in R and are limited to a single survey per server.
+ShinySurveyJS integrates the frontend flexibility of the [SurveyJS](https://surveyjs.io/) Javascript library with the backend capabilities of [Shiny](https://shiny.posit.co/) to interface with a database and create dynamic survey user experiences. While there are incredible Shiny survey packages like [surveydown](https://github.com/surveydown-dev/surveydown) and [shinysurveys](https://github.com/jdtrat/shinysurveys), they build the UI in R and are limited to a single survey per server.
 
 ## SurveyJS
 
 [SurveyJS](https://surveyjs.io/) is "a free and open-source MIT-licensed JavaScript form builder library that allows you to design dynamic, data-driven, multi-language survey forms."
 
-At its core is a powerful form-building engine, complemented by a user-friendly [visual editor](https://surveyjs.io/create-free-survey) and extensive [documentation](https://surveyjs.io/documentation). Built on TypeScript with reactive components, the framework provides type safety and responsive design while working seamlessly with any backend or database.
+At its core is a powerful form-building engine, complemented by a user-friendly [visual editor](https://surveyjs.io/create-free-survey) and extensive [documentation](https://surveyjs.io/documentation). Built on TypeScript with reactive components, the framework provides type safety and responsive design while working with any backend or database.
 
 SurveyJS's features include conditional logic and branching, robust input validation, a wide variety of question types, customizable themes, multi-page layouts, and multi-language support—all of which make it a excellent choice for building complex survey applications.
 
