@@ -93,7 +93,7 @@ Use undersores and don't include spaces and special characters for the `group_co
 
 ### Option 2: Staged JSON
 
-For this option, dynamic field configurations are stored as JSON objects in the `json_stage` column of the `surveys` table. After a survey is loaded, an asynchronous worker reads the `json_stage` configuration and re-writes the `json` column if updates are available using the [future](https://github.com/futureverse/future) package. The table name for the staged JSON configuration is located in the `json_stage_field_name` column. The table should have the following columns:
+For this option, dynamic field configurations are stored as JSON objects in the `json_stage` column of the `surveys` table. After a survey is loaded, the asynchronous setup process reads the `json_stage` configuration and re-writes the `json` column if updates are available using the [future](https://github.com/futureverse/future) package. The JSON staging table may have the following columns, for example:
 
 -   `field_name`: The field name (e.g., age_group)
 -   `field_type`: The field type (e.g., radiogroup)
@@ -181,15 +181,15 @@ These examples show how to use dynamic fields to track participants and/or updat
 
 Tokenization is a security process that replaces sensitive data like a survey name or an individual's name with non-sensitive placeholders like a randomly generated string.
 
-Using tokens requires an additional table read to a look-up table, making it a slower process since each token must be converted back to its original data. Tokens are generated as a background task of the app using parallelization, meaning the work is split across multiple simultaneous processes for faster completion. If new tokens are created, users can access them on the next page load after the process runs. You can customize the tokenization algorithm in `shiny/tokens.R`.
-
 1.  Run the app:
 
 ``` r
 runApp()
 ```
 
-If the `tokens` table does not exist yet, the app will automatically create it. The app will also generate tokens for each survey and store them in the database.
+If the `tokens` table does not exist yet, the asynchronous setup process will automatically create it. The app will also generate tokens for each survey and store them in the database.
+
+If new tokens are created, users can access them on the next page load after the process runs. You can customize the tokenization algorithm in `shiny/tokens.R`.
 
 2.  Access survey with URL query parameters:
     -   Without tokens (same as survey name): `/?survey=name`
