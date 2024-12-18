@@ -179,7 +179,7 @@ These examples show how to use dynamic fields to track participants and/or updat
 
 ## Tokenization
 
-Tokenization is a security process that replaces sensitive data like a survey name or an individual's name with non-sensitive placeholders like a randomly generated string.
+Tokenization is a security process that replaces sensitive data like a survey name or an individual's name with non-sensitive placeholders like a randomly generated string (e.g., `NovaRemnantGoldFourHundredNinetyTwo`).
 
 1.  Run the app:
 
