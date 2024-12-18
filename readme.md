@@ -202,7 +202,8 @@ Each survey can be activated or deactivated by setting the `active` column in th
 
 The data from the survey is stored along with the following information in the survey data:
 
--   `date_created`: Date the survey was created
+-   `date_created`: Timestamp when the survey was created
+-   `date_updated`: Timestamp when the survey was updated in the database
 -   `duration_complete`: Number of seconds it took to complete the survey
 -   `duration_load`: Seconds it took to load the survey
 -   `ip_address`: IP address of the user
