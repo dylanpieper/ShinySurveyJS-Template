@@ -228,7 +228,7 @@ To improve performance, consider the following:
 
 -   Use a database with fast read and write speeds
 -   Optimize the queries used to retrieve the tokens and surveys
--   Cache the tokens and surveys in memory (e.g., [Redis](https://redis.io/) via the [redux](https://github.com/richfitz/redux) package)
+-   Cache the tokens and surveys in memory (e.g., using [Redis](https://redis.io/) via the [redux](https://github.com/richfitz/redux) package)
 -   Modify the timing of the asynchronous setup process
 
 ## Roadmap
