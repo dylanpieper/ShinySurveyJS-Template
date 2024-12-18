@@ -216,10 +216,6 @@ Upon submission, survey responses are automatically stored in a database table n
 
 Easily change the database driver in `database.R` to use any database system compatible with the `DBI` package (see [list of backends](https://github.com/r-dbi/backends#readme)). The `RPostgres` package is used by default.
 
-## Publishing
-
-The default Shiny app settings are found in the `shiny/shiny.R` file (e.g., host, port, and number of workers). Setup the app in a container on a cloud platform like [Shinyapps.io](https://www.shinyapps.io/) or [Azure Web Apps](https://azure.microsoft.com/en-us/products/app-service/web). When scaling, optimize the app by adding traffic monitoring, testing different networking configurations, testing the app's performance under heavy loads, and node balancing. Additionally, consider adjusting the behavior of the asynchronous setup process. Consider adjusting the system sleep `Sys.sleep(runif(1, 0, 10))` in `app.R` or modifying the setup process to fit your needs.
-
 ## Speed and Performance
 
 Because all of the tokens and surveys are retrieved directly from the database, the app may be slow to load if there are many sessions open concurrently or if the database server is slow. Additionally, the asynchronous setup process can put more strain on the server.
@@ -232,6 +228,10 @@ To improve performance, consider the following:
 -   Optimize the queries used to retrieve the tokens and surveys
 -   Cache the database tables in memory (e.g., using [Redis](https://redis.io/) via the [redux](https://github.com/richfitz/redux) package)
 -   Modify the timing of the asynchronous setup process
+
+## Publishing
+
+The default Shiny app settings are found in the `shiny/shiny.R` file (e.g., host, port, and number of workers). Publish directly to a cloud platform like [Shinyapps.io](https://www.shinyapps.io/) or setup the app in a container on a service like [Azure Web Apps](https://azure.microsoft.com/en-us/products/app-service/web). When scaling, optimize the app by adding traffic monitoring, testing different networking configurations, testing the app's performance under heavy loads, and node balancing. Additionally, consider adjusting the behavior of the asynchronous setup process. Consider adjusting the system sleep `Sys.sleep(runif(1, 0, 10))` in `app.R` or modifying the setup process to fit your needs.
 
 ## Roadmap
 
