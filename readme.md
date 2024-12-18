@@ -61,7 +61,7 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
 
 ## Dynamic Fields
 
-First, run the queries in `setup_examples.sql` to create the setup the `surveys`, `config_pid`, `config_vacation`, `config_doctor_clinic`, and `json_config_stage` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
+First, run the queries in `setup_examples.sql` to create the setup the `surveys`, `config_pid`, `config_vacation`, `config_doctor_clinic`, and `config_json_stage` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
 
 ### Option 1: Live Tables
 
@@ -93,7 +93,7 @@ Use undersores and don't include spaces and special characters for the `group_co
 
 ### Option 2: Staged JSON
 
-For this option, dynamic field configurations are stored as JSON objects in the `json_stage` column of the `surveys` table. After a survey is loaded, the asynchronous setup process reads the `json_stage` configuration and re-writes the `json` column if updates are available using the [future](https://github.com/futureverse/future) package. The JSON staging table may have the following columns, for example:
+For this option, dynamic field configurations are stored as JSON objects in the `json_stage` column of the `surveys` table. After a survey is loaded, the asynchronous setup process reads the `json_stage` configuration and rewrites the `json` column if updates are available using the [future](https://github.com/futureverse/future) package. The JSON staging table may have the following columns, for example:
 
 -   `field_name`: The field name (e.g., age_group)
 -   `field_type`: The field type (e.g., radiogroup)
