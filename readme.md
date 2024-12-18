@@ -70,9 +70,9 @@ Optionally, create and manage your own dynamic fields table by mapping your fiel
 
 -   `table_name`: The table name for the dynamic field
 -   `group_col`: The column name that will be used to filter the dynamic fields
--   `select_group`: A logical for using the group column to populate the field choices in the JSON field (true) or defining the group in the URL query for tracking (false)
-    -   `group_id_table_name`: If `select_group` is true, the table name to locate the group ID column used in the query for participant tracking
-    -   `group_id_col`: If `select_group` is true, the group ID column used in the query for participant tracking
+-   `select_group`: A logical for using the group column to populate the field choices in the JSON field (`true`) or defining the group in the URL query for tracking (`false`)
+    -   `group_id_table_name`: If `select_group` is `true`, the table name to locate the group ID column used in the query for participant tracking
+    -   `group_id_col`: If `select_group` is `true`, the group ID column used in the query for participant tracking
 -   `choices_col`: The column name used to populate the field choices
 
 An example of the JSON configuration in the `json_config` column:
