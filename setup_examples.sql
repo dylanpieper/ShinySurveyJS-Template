@@ -763,7 +763,7 @@ VALUES
      '["High School or equivalent", "Some College", "Bachelor''s Degree", "Master''s Degree", "Doctorate", "Other"]'::jsonb
     ),
     ('employment',
-     '"checkbox"',
+     'checkbox',
      '["Full-time employed", "Part-time employed", "Self-employed", "Student", "Retired", "Unemployed"]'::jsonb
     );
 
