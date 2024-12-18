@@ -209,9 +209,7 @@ Because all of the tokens and surveys are retrieved directly from the database, 
 To improve performance, consider the following:
 
 -   Use a database with fast read and write speeds
-
 -   Cache the survey data in cookies
-
 -   Configure the asynchronous setup process to execute at scheduled times, with longer intervals, or at slower frequencies
 
 Locally, with the nearest Supabase server, I observe 2 to 3 second load times.

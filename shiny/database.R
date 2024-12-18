@@ -283,7 +283,7 @@ db_setup <- R6::R6Class(
       self$session_id <- session_id
     },
     
-    setup_staged_json = function(survey_table_name) {
+    setup_json_stage = function(survey_table_name) {
       # Initialize table_cache if needed
       if (is.null(private$table_cache)) {
         private$table_cache <- list()
@@ -298,9 +298,9 @@ db_setup <- R6::R6Class(
         surveys_data <- private$table_cache[[cache_key]]
       }
       
-      # Filter for non-null staged_json
+      # Filter for non-null json_stage
       surveys_data <- surveys_data |>
-        dplyr::filter(!is.na(staged_json))
+        dplyr::filter(!is.na(json_stage))
       
       if (nrow(surveys_data) == 0) {
         private$log_message("No records with staged JSON found")
@@ -316,7 +316,7 @@ db_setup <- R6::R6Class(
       
       # Process each survey row to find unique tables
       for (i in seq_len(nrow(surveys_data))) {
-        json_str <- surveys_data$staged_json[i]
+        json_str <- surveys_data$json_stage[i]
         
         # Find all patterns matching table_name["field_name", "column_name"]
         patterns <- unlist(regmatches(json_str, 
@@ -345,7 +345,7 @@ db_setup <- R6::R6Class(
       # Process each survey row
       processed_json <- vector("character", nrow(surveys_data))
       for (i in seq_len(nrow(surveys_data))) {
-        json_str <- surveys_data$staged_json[i]
+        json_str <- surveys_data$json_stage[i]
         
         # Find all patterns matching table_name["field_name", "column_name"]
         patterns <- unlist(regmatches(json_str, 
@@ -488,13 +488,13 @@ db_setup <- R6::R6Class(
       }
       
       # Helper function to extract groups from config
-      get_groups_from_config <- function(config_json, group_id_table_name = FALSE) {
-        if (is.null(config_json) || config_json == "" || is.na(config_json)) {
+      get_groups_from_config <- function(json_config, group_id_table_name = FALSE) {
+        if (is.null(json_config) || json_config == "" || is.na(json_config)) {
           return(character(0))
         }
         
         tryCatch({
-          config <- jsonlite::fromJSON(config_json)
+          config <- jsonlite::fromJSON(json_config)
           table_logic <- if (!group_id_table_name) config$table_name else config$group_id_table_name
           group_logic <- if (!group_id_table_name) config$group_col else config$group_id_col
           if (!is.null(config) && 
@@ -518,8 +518,8 @@ db_setup <- R6::R6Class(
       
       # Extract all groups and their IDs from valid configs
       all_groups <- tryCatch({
-        valid_configs <- surveys_data$config_json[!is.na(surveys_data$config_json) & 
-                                                    surveys_data$config_json != ""]
+        valid_configs <- surveys_data$json_config[!is.na(surveys_data$json_config) & 
+                                                    surveys_data$json_config != ""]
         
         # Extract groups and group IDs
         groups_and_ids <- lapply(valid_configs, function(config) {
@@ -628,10 +628,10 @@ db_setup <- R6::R6Class(
         column_name <- parts[4]
         
         # Get the corresponding staged data table
-        staged_json_data <- staged_data_lookup[[table_name]]
+        json_stage_data <- staged_data_lookup[[table_name]]
         
-        if (!is.null(staged_json_data)) {
-          matching_row <- staged_json_data[gsub('"', '', staged_json_data$field_name) == field_name, ]
+        if (!is.null(json_stage_data)) {
+          matching_row <- json_stage_data[gsub('"', '', json_stage_data$field_name) == field_name, ]
           
           if (nrow(matching_row) > 0) {
             replacement_value <- matching_row[[column_name]]

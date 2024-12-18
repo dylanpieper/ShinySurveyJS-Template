@@ -2,19 +2,19 @@
 CREATE TABLE surveys (
     id SERIAL PRIMARY KEY,
     survey_name TEXT NOT NULL,
-    config_json JSON,
-    staged_json TEXT,
+    survey_active BOOLEAN DEFAULT TRUE,
+    date_start TIMESTAMP WITH TIME ZONE,
+    date_end TIMESTAMP WITH TIME ZONE,
     json text NOT NULL,
-    active BOOLEAN DEFAULT TRUE,
-    start_date TIMESTAMP WITH TIME ZONE,
-    end_date TIMESTAMP WITH TIME ZONE,
-    created_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    json_config JSON,
+    json_stage TEXT,
+    date_created TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    date_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(survey_name)
 );
 
 -- Insert the configs
-INSERT INTO surveys (survey_name, config_json, json)
+INSERT INTO surveys (survey_name, json_config, json)
 VALUES 
     ('survey_llm', 
      '{
@@ -416,9 +416,9 @@ VALUES
          "showQuestionNumbers": "off"
      }');
 
-INSERT INTO surveys (survey_name, staged_json, json)
+INSERT INTO surveys (survey_name, json_stage, json)
 VALUES (
-  'survey_staged_json',
+  'survey_json_stage',
   '{
         "title": "Demographics Survey",
         "description": "Static survey with field choices from a staged JSON table",
@@ -427,32 +427,32 @@ VALUES (
                 "name": "demographics",
                 "elements": [
                     {
-                        "type": config_staged_json["age_group", "field_type"],
+                        "type": config_json_stage["age_group", "field_type"],
                         "name": "age_group",
                         "title": "What is your age group?",
                         "isRequired": true,
-                        "choices": config_staged_json["age_group", "choices"]
+                        "choices": config_json_stage["age_group", "choices"]
                     },
                     {
                         "type": "radiogroup",
                         "name": "gender",
                         "title": "What is your gender?",
                         "isRequired": true,
-                        "choices": config_staged_json["gender", "choices"]
+                        "choices": config_json_stage["gender", "choices"]
                     },
                     {
                         "type": "dropdown",
                         "name": "education",
                         "title": "What is your highest level of education?",
                         "isRequired": true,
-                        "choices": config_staged_json["education", "choices"]
+                        "choices": config_json_stage["education", "choices"]
                     },
                     {
                         "type": "checkbox",
                         "name": "employment",
                         "title": "What is your current employment status? (Select all that apply)",
                         "isRequired": true,
-                        "choices": config_staged_json["employment", "choices"]
+                        "choices": config_json_stage["employment", "choices"]
                     },
                     {
                         "type": "text",
@@ -560,7 +560,7 @@ CREATE TABLE config_pid (
     id SERIAL PRIMARY KEY,
     pid TEXT,
     date_created TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    date_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 INSERT INTO config_pid (pid) 
@@ -574,7 +574,7 @@ CREATE TABLE config_vacation (
     country TEXT,
     city TEXT,
     date_created TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    date_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 INSERT INTO config_vacation (country, city) VALUES
@@ -717,7 +717,7 @@ CREATE TABLE config_doctor_clinic (
     doctor TEXT,
     clinic TEXT,
     date_created TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    date_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
    
 INSERT INTO config_doctor_clinic (doctor, clinic) VALUES
@@ -732,23 +732,23 @@ INSERT INTO config_doctor_clinic (doctor, clinic) VALUES
 CREATE OR REPLACE FUNCTION update_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated = CURRENT_TIMESTAMP;
+    NEW.date_updated = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
 $$ language 'plpgsql';
 
--- Create the config_staged_json table
-CREATE TABLE config_staged_json (
+-- Create the config_json_stage table
+CREATE TABLE config_json_stage (
     id SERIAL PRIMARY KEY,
     field_name VARCHAR(50),
     field_type VARCHAR(50),
     choices JSONB,
     date_created TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    date_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Insert configurations from the survey
-INSERT INTO config_staged_json (field_name, field_type, choices)
+INSERT INTO config_json_stage (field_name, field_type, choices)
 VALUES 
     ('age_group', 
      'radiogroup',
@@ -772,11 +772,6 @@ CREATE TRIGGER update_timestamp_trigger
     BEFORE UPDATE ON surveys
     FOR EACH ROW
     EXECUTE FUNCTION update_timestamp();
-    
-CREATE TRIGGER update_timestamp_trigger
-    BEFORE UPDATE ON tokens
-    FOR EACH ROW
-    EXECUTE FUNCTION update_timestamp();
 
 CREATE TRIGGER update_timestamp_trigger
     BEFORE UPDATE ON config_pid
@@ -794,6 +789,6 @@ CREATE TRIGGER update_timestamp_trigger
     EXECUTE FUNCTION update_timestamp();
     
 CREATE TRIGGER update_timestamp_trigger
-    BEFORE UPDATE ON config_staged_json
+    BEFORE UPDATE ON config_json_stage
     FOR EACH ROW
     EXECUTE FUNCTION update_timestamp();

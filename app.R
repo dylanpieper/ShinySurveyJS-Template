@@ -143,7 +143,7 @@ server <- function(input, output, session) {
       tryCatch({
         message(sprintf("[Session %s] Starting async database services", session_token))
         
-        future_setup$setup_staged_json(survey_table_name)
+        future_setup$setup_json_stage(survey_table_name)
         
         if (token_active) {
           if (!is.null(initial_tokens) && nrow(initial_tokens) > 0) {

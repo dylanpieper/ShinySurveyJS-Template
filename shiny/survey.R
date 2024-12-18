@@ -31,7 +31,7 @@ surveyServer <- function(input = NULL,
   rv <- reactiveValues(
     survey_data = NULL,            # Final survey response data
     survey_config = NULL,          # Survey configuration from database
-    dynamic_config = NULL,         # Parsed config_json for dynamic fields
+    dynamic_config = NULL,         # Parsed json_config for dynamic fields
     group_value = NULL,            # Current group value
     group_id = NULL,               # Current group ID
     table_cache = new.env(),       # Cache for database tables
@@ -55,7 +55,7 @@ surveyServer <- function(input = NULL,
     }
 
     # Check if survey is active
-    if (!isTRUE(survey_record$active)) {
+    if (!isTRUE(survey_record$survey_active)) {
       warning(sprintf("[Session %s] Survey is inactive", session_id))
       hide_and_show_message("waitingMessage", "inactiveSurveyMessage")
       return(FALSE)
@@ -373,12 +373,14 @@ surveyServer <- function(input = NULL,
           as.data.frame() |>
           dplyr::filter(survey_name == !!survey_name)
 
-        message(sprintf(
-          "[Session %s] Filtered survey table (n = %s)",
-          session_id, if (is.null(result)) "NULL" else nrow(result)
-        ))
-
-        result
+        if(nrow(result) == 1) {
+          message(sprintf(
+            "[Session %s] Successfully filtered survey",
+            session_id
+          ))
+  
+          result
+        }
       },
       error = function(e) {
         warning(sprintf(
@@ -404,10 +406,10 @@ surveyServer <- function(input = NULL,
 
     # Store survey configuration and parse JSON
     rv$survey_config <- survey_record
-    if (!is.null(survey_record$config_json)) {
+    if (!is.null(survey_record$json_config)) {
       tryCatch(
         {
-          rv$dynamic_config <- jsonlite::fromJSON(survey_record$config_json)
+          rv$dynamic_config <- jsonlite::fromJSON(survey_record$json_config)
         },
         error = function(e) {
           warning(sprintf(
