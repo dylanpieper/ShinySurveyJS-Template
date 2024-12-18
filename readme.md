@@ -92,7 +92,7 @@ Use undersores and don't include spaces and special characters for the `group_co
 
 ### Option 2: Staged JSON
 
-For this option, dynamic field configurations are stored as JSON objects in the `json_stage` column of the `surveys` table. After a survey is loaded, an asynchronous worker reads the `json_stage` configuration and re-writes the `json` column if updates are available using the `{future}` package. The table name for the staged JSON configuration is located in the `json_stage_field_name` column. The table should have the following columns:
+For this option, dynamic field configurations are stored as JSON objects in the `json_stage` column of the `surveys` table. After a survey is loaded, an asynchronous worker reads the `json_stage` configuration and re-writes the `json` column if updates are available using the [future](https://github.com/futureverse/future) package. The table name for the staged JSON configuration is located in the `json_stage_field_name` column. The table should have the following columns:
 
 -   `field_name`: The field name (e.g., age_group)
 -   `field_type`: The field type (e.g., radiogroup)
@@ -201,9 +201,10 @@ Each survey can be activated or deactivated by setting the `active` column in th
 ## Data Output
 
 The data from the survey is stored along with the following information in the survey data:
+
 -   `date_created`: Date the survey was created
 -   `duration_complete`: Number of seconds it took to complete the survey
--   `duration_load`: Seconds it took to load the survey 
+-   `duration_load`: Seconds it took to load the survey
 -   `ip_address`: IP address of the user
 -   `session_id` Shiny session ID
 
@@ -219,13 +220,14 @@ The default Shiny app settings are found in the `shiny/shiny.R` file (e.g., host
 
 Because all of the tokens and surveys are retrieved directly from the database, the app may be slow to load if there are many sessions open concurrently or if the database server is slow. Additionally, the asynchronous setup process can put more strain on the server.
 
+Locally, using the nearest Supabase server, I observe **2 to 3 second** **load times** on average.
+
 To improve performance, consider the following:
 
 -   Use a database with fast read and write speeds
--   Cache the survey json
+-   Optimize the queries used to retrieve the tokens and surveys
+-   Cache the tokens and surveys in memory (e.g., [Redis](https://redis.io/) via the [redux](https://github.com/richfitz/redux) package)
 -   Modify the timing of the asynchronous setup process
-
-Locally, using the nearest Supabase server, I observe **2 to 3 second** **load times** on average.
 
 ## Roadmap
 
