@@ -196,7 +196,7 @@ If the `tokens` table does not exist yet, the app will automatically create it. 
 
 ## Activation and Dates
 
-Each survey can be activated or deactivated by setting the `active` column in the `surveys` table to `TRUE` or `FALSE`. Additionally, you can set a time window for each survey by defining the `date_start` and `date_end` columns in the `surveys` table. The app will automatically check the current time against the time window and the activation status of the survey.
+Each survey can be activated or deactivated by setting the `active` column in the `surveys` table to `TRUE` or `FALSE`. You can set a time window for each survey by defining the `date_start` and `date_end` columns in the `surveys` table. The app will automatically check the current time against the time window and the activation status of the survey.
 
 ## Data Output
 
