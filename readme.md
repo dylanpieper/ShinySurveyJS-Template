@@ -20,7 +20,8 @@ The current implementation of ShinySurveyJS specifically uses the [SurveyJS jQue
 
 ## Key Features
 
--   Multiple surveys in a single app (add, remove, or edit without restarting the server)
+-   Multiple surveys in a single app
+-   Add, remove, or edit surveys without restarting the server
 -   URL query parameters use database tables to enable participant tracking and/or dynamically updating field choices (i.e., survey item response options)
 -   URL query tokens prevent user manipulation of public surveys
     -   Automatically generates and stores unique tokens in the database
