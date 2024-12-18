@@ -61,7 +61,7 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
 
 ## Dynamic Fields
 
-First, run the queries in `setup_example.sql` to create the setup the `surveys`, `config_pid`, `config_vacation`, `config_doctor_clinic`, and `json_config_stage` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
+First, run the queries in `setup_examples.sql` to create the setup the `surveys`, `config_pid`, `config_vacation`, `config_doctor_clinic`, and `json_config_stage` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
 
 ### Option 1: Live Tables
 
