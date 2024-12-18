@@ -6,8 +6,8 @@ CREATE TABLE surveys (
     json text NOT NULL,
     json_config JSON,
     json_stage TEXT,
-    date_start TIMESTAMP WITH TIME ZONE,
-    date_end TIMESTAMP WITH TIME ZONE,
+    date_start DATE,
+    date_end DATE,
     date_created TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     date_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(survey_name)
