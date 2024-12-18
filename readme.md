@@ -202,6 +202,20 @@ Easily change the database driver in `database.R` to use any database system com
 
 The default Shiny app settings are found in the `shiny/shiny.R` file (e.g., host, port, and number of workers). Setup the app in a container on a cloud platform like [Shinyapps.io](https://www.shinyapps.io/) or [Azure Web Apps](https://azure.microsoft.com/en-us/products/app-service/web). When scaling, optimize the app by adding traffic monitoring, testing different networking configurations, testing the app's performance under heavy loads, and node balancing. Additionally, consider adjusting the behavior of the asynchronous setup process. Consider adjusting the system sleep `Sys.sleep(runif(1, 0, 10))` in `app.R` or modifying the setup process to fit your needs.
 
+## Speed and Performance
+
+Because all of the tokens and surveys are retrieved directly from the database, the app may be slow to load if there are many survey sessions open concurrently or if the database is slow. Additionally, the asynchronous setup process can put more strain on the server.
+
+To improve performance, consider the following:
+
+-   Use a database with fast read and write speeds
+
+-   Cache the survey data in cookies
+
+-   Configure the asynchronous setup process to execute at scheduled times, with longer intervals, or at slower frequencies
+
+Locally, with the nearest Supabase server, I observe 2 to 3 second load times.
+
 ## Roadmap
 
 -   ✔️ Friendly initialization UI
