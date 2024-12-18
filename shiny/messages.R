@@ -110,6 +110,13 @@ messageUI <- function() {
       class = "message-container",
       style = "display: none;",
       div(class = "error-message", "⏰ Survey Ended")
+    ),
+    div(
+      id = "savingDataMessage",
+      class = "message-container",
+      style = "display: none;",
+      div(class = "loading-spinner"),
+      div(class = "loading-text", "Saving Data")
     )
   )
 }

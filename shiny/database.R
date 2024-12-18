@@ -24,7 +24,7 @@ db_pool <- R6::R6Class(
 
 # DB Ops ----
 
-# Database operations class for managing database queries
+# Database operations class for managing database queries and operations
 db_operations <- R6::R6Class(
   "Database Operations",
   public = list(
@@ -108,7 +108,7 @@ db_operations <- R6::R6Class(
           append = TRUE,
           row.names = FALSE
         )
-        private$log_message(private$log_message(sprintf("Successfully wrote to %s table", token_table_name)))
+        private$log_message(sprintf("Successfully wrote to %s table", token_table_name))
       }, sprintf("Failed to write to %s table", token_table_name))
     },
     
@@ -180,7 +180,8 @@ db_operations <- R6::R6Class(
                           attempt = 1,
                           last_error = NULL) {
       if (is.null(table_name) || !is.character(table_name) || length(table_name) != 1) {
-        stop(private$format_message(paste0("Invalid 'table_name': ", table_name, ". It must be a non-null, single-character string.")))
+        stop(private$format_message(paste0("Invalid 'table_name': ", table_name, 
+                                           ". It must be a non-null, single-character string.")))
       }
       
       while (attempt <= max_retries) {
@@ -191,7 +192,8 @@ db_operations <- R6::R6Class(
             DBI::dbGetQuery(conn, query)
           }, sprintf("Failed to read table %s", table_name))
           
-          private$log_message(sprintf("Successfully read '%s' table (attempt %d of %d)", table_name, attempt, max_retries))
+          private$log_message(sprintf("Successfully read '%s' table (attempt %d of %d)", 
+                                      table_name, attempt, max_retries))
           return(result)
           
         }, error = function(e) {
@@ -212,6 +214,94 @@ db_operations <- R6::R6Class(
         table_name, max_retries, 
         if (!is.null(last_error)) last_error$message else "Unknown error"
       )))
+    },
+    
+    create_survey_data_table = function(survey_name, data) {
+      if (is.null(survey_name) || !is.character(survey_name)) {
+        stop(private$format_message("Invalid survey_name"))
+      }
+      
+      if (!is.data.frame(data) || nrow(data) == 0) {
+        stop(private$format_message("Invalid data: must be a non-empty data frame"))
+      }
+      
+      table_name <- private$sanitize_survey_table_name(survey_name)
+      
+      self$execute_db_operation(function(conn) {
+        # Check if table exists
+        if (!DBI::dbExistsTable(conn, table_name)) {
+          # Create new table with columns from data
+          col_defs <- private$generate_column_definitions(data)
+          create_query <- sprintf(
+            "CREATE TABLE %s (%s);",
+            DBI::dbQuoteIdentifier(conn, table_name),
+            paste(col_defs, collapse = ", ")
+          )
+          DBI::dbExecute(conn, create_query)
+          private$log_message(sprintf("Created new table '%s'", table_name))
+        }
+      }, sprintf("Failed to create table '%s'", table_name))
+      
+      invisible(table_name)
+    },
+    
+    update_survey_data_table = function(survey_name, data) {
+      if (is.null(survey_name) || !is.character(survey_name)) {
+        stop(private$format_message("Invalid survey_name"))
+      }
+      
+      if (!is.data.frame(data) || nrow(data) == 0) {
+        stop(private$format_message("Invalid data: must be a non-empty data frame"))
+      }
+      
+      table_name <- private$sanitize_survey_table_name(survey_name)
+      
+      self$execute_db_operation(function(conn) {
+        if (!DBI::dbExistsTable(conn, table_name)) {
+          stop(sprintf("Table '%s' does not exist", table_name))
+        }
+        
+        # Get existing columns
+        cols_query <- sprintf(
+          "SELECT column_name, data_type 
+           FROM information_schema.columns 
+           WHERE table_name = '%s';",
+          table_name
+        )
+        existing_cols <- DBI::dbGetQuery(conn, cols_query)
+        
+        # Check for new columns
+        new_cols <- setdiff(names(data), existing_cols$column_name)
+        
+        # Add any new columns
+        for (col in new_cols) {
+          col_type <- private$get_postgres_type(data[[col]])
+          alter_query <- sprintf(
+            "ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s %s;",
+            DBI::dbQuoteIdentifier(conn, table_name),
+            DBI::dbQuoteIdentifier(conn, col),
+            col_type
+          )
+          DBI::dbExecute(conn, alter_query)
+          private$log_message(sprintf("Added column %s to '%s'", col, table_name))
+        }
+        
+        # Insert the data
+        DBI::dbWriteTable(
+          conn,
+          name = table_name,
+          value = data,
+          append = TRUE,
+          row.names = FALSE
+        )
+        
+        private$log_message(sprintf(
+          "Inserted survey data into '%s' (n = %d)",
+          table_name, nrow(data)
+        ))
+      }, sprintf("Failed to update table '%s'", table_name))
+      
+      invisible(table_name)
     },
     
     execute_db_operation = function(operation, error_message) {
@@ -263,6 +353,35 @@ db_operations <- R6::R6Class(
     
     format_message = function(msg) {
       sprintf("[Session %s] %s", self$session_id, msg)
+    },
+    
+    sanitize_survey_table_name = function(name) {
+      # Convert to lowercase and replace spaces/special chars with underscores
+      sanitized <- tolower(gsub("[^[:alnum:]]", "_", name))
+      sanitized
+    },
+    
+    generate_column_definitions = function(data) {
+      vapply(names(data), function(col) {
+        type <- private$get_postgres_type(data[[col]])
+        sprintf("%s %s", 
+                DBI::dbQuoteIdentifier(self$pool, col), 
+                type)
+      }, character(1))
+    },
+    
+    get_postgres_type = function(vector) {
+      if (is.numeric(vector)) {
+        if (all(vector == floor(vector), na.rm = TRUE)) {
+          return("INTEGER")
+        }
+        return("NUMERIC")
+      }
+      if (is.logical(vector)) return("BOOLEAN")
+      if (inherits(vector, "POSIXt")) return("TIMESTAMP")
+      if (is.factor(vector)) return("TEXT")
+      if (is.list(vector)) return("JSONB")
+      return("TEXT")
     },
     
     table_cache = NULL

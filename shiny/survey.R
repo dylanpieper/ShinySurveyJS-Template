@@ -650,21 +650,24 @@ surveyServer <- function(input = NULL,
       # Parse the survey data
       data <- jsonlite::fromJSON(input$surveyData)
       
+      # Show saving message
+      shinyjs::show("savingDataMessage", anim = TRUE, animType = "fade")
+      
       # Calculate timing data
       timing_data <- list()
       
       # Calculate load duration (time between sending JSON and first interaction)
       if (!is.null(rv$time_load) && !is.null(rv$time_json_load)) {
-        timing_data$duration_load <- round(as.numeric(difftime(rv$time_json_load, 
-                                                               rv$time_load, 
-                                                               units = "secs")), 2)
+        timing_data$duration_load <- as.numeric(difftime(rv$time_json_load, 
+                                                         rv$time_load, 
+                                                         units = "secs"))
       }
       
       # Calculate completion duration (time between first interaction and submission)
       if (!is.null(rv$time_json_load)) {
-        timing_data$duration_complete <- round(as.numeric(difftime(Sys.time(), 
-                                                                   rv$time_json_load, 
-                                                                   units = "secs")), 2)
+        timing_data$duration_complete <- as.numeric(difftime(Sys.time(), 
+                                                             rv$time_json_load, 
+                                                             units = "secs"))
       }
       
       # Store timing data
@@ -703,12 +706,39 @@ surveyServer <- function(input = NULL,
       # Process data for display, including timing data
       rv$display_data <- process_survey_data(data, session_id, rv$timing_data)
       
+      # Save processed data to database
+      if (!is.null(rv$display_data)) {
+        tryCatch({
+          # Get survey name from config
+          survey_name <- rv$survey_config$survey_name
+          
+          if (is.null(survey_name)) {
+            stop("Survey name not found in configuration")
+          }
+          
+          # Create table if it doesn't exist
+          db_ops$create_survey_data_table(survey_name, rv$display_data)
+          
+          # Update table schema if needed and insert data
+          db_ops$update_survey_data_table(survey_name, rv$display_data)
+          
+        }, error = function(e) {
+          warning(sprintf("[Session %s] Error saving survey data: %s", 
+                          session_id, e$message))
+        })
+      }
+      
+      # Hide saving message
+      shinyjs::hide("savingDataMessage", anim = TRUE, animType = "fade")
+      
       # Show the data container if show_response is TRUE
       if (show_response) {
         shinyjs::show("surveyDataContainer")
       }
       
     }, error = function(e) {
+      # Hide saving message in case of error
+      shinyjs::hide("savingDataMessage", anim = TRUE, animType = "fade")
       warning(sprintf("[Session %s] Error processing survey data: %s", 
                       session_id, e$message))
     })

@@ -201,7 +201,7 @@ Each survey can be activated or deactivated by setting the `active` column in th
 
 ## Data Output
 
-The data from the survey is stored along with the following information in the survey data:
+Upon submission, survey responses are automatically stored in a database table named according to the `survey_name`. If the table doesn't exist, the system creates it, and if the table already exists, the system updates it. Each survey response is saved along with the following metadata in the corresponding table:
 
 -   `date_created`: Timestamp when the survey was created
 -   `date_updated`: Timestamp when the survey was updated in the database
@@ -233,12 +233,11 @@ To improve performance, consider the following:
 
 ## Roadmap
 
--   ✔️ Friendly initialization UI
--   ✔️ URL parameter tokenization
+-   ✔️ URL query parameter tokenization
 -   PostgreSQL
     -   ✔️ Tokens and dynamic fields handled in database
     -   ✔️ Staged JSON configuration
-    -   🚧 Survey data is written to database
+    -   ✔️ Survey data is written to database
 -   🚧 Admin interface to generate links for sharing surveys
 -   🚧 Cookies to cache survey data
 -   🚧 Container support
