@@ -191,7 +191,7 @@ db_operations <- R6::R6Class(
             DBI::dbGetQuery(conn, query)
           }, sprintf("Failed to read table %s", table_name))
           
-          private$log_message(sprintf("Successfully read '%s' table (attempt %d)", table_name, attempt))
+          private$log_message(sprintf("Successfully read '%s' table (attempt %d of %d)", table_name, attempt, max_retries))
           return(result)
           
         }, error = function(e) {

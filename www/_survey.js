@@ -171,8 +171,6 @@ $(document).ready(function() {
   });
   
   Shiny.addCustomMessageHandler("updateChoices", function(data) {
-    // console.log("Received updateChoices message:", data);
-    
     if (!survey) {
       console.error("Survey not initialized when trying to update choices");
       return;
@@ -185,17 +183,17 @@ $(document).ready(function() {
     }
     
     const currentValue = targetQuestion.value;
-    // console.log("Current value before update:", currentValue);
     
+    // Transform choices to include both original value and formatted display text
     targetQuestion.choices = data.choices.map(choice => ({
-      value: choice,
-      text: choice
+      value: choice,  // Keep original value with underscores
+      text: choice.replace(/_/g, ' ')  // Replace underscores with spaces for display
     }));
     
     if (currentValue && data.choices.includes(currentValue)) {
       // Update both value and display value immediately
       targetQuestion.value = currentValue;
-      targetQuestion.displayValue = currentValue;
+      targetQuestion.displayValue = currentValue.replace(/_/g, ' ');
       
       // Force UI update
       const dropdownEl = targetQuestion.dropdownEl || 
@@ -208,7 +206,5 @@ $(document).ready(function() {
       
       survey.render();
     }
-    
-    // console.log("Updated choices for question:", data.targetQuestion);
   });
 });
