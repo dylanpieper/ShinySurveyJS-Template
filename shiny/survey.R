@@ -64,12 +64,12 @@ surveyServer <- function(input = NULL,
     current_time <- Sys.time()
 
     # Check start date only if it's not NULL and not NA
-    if (!is.null(survey_record$start_date) && !is.na(survey_record$start_date)) {
-      start_date <- as.POSIXct(survey_record$start_date)
-      if (!is.na(start_date) && current_time < start_date) {
+    if (!is.null(survey_record$date_start) && !is.na(survey_record$date_start)) {
+      date_start <- as.POSIXct(survey_record$date_start)
+      if (!is.na(date_start) && current_time < date_start) {
         warning(sprintf(
           "[Session %s] Survey hasn't started yet. Starts: %s",
-          session_id, format(start_date)
+          session_id, format(date_start)
         ))
         hide_and_show_message("waitingMessage", "surveyNotStartedMessage")
         return(FALSE)
@@ -77,12 +77,12 @@ surveyServer <- function(input = NULL,
     }
 
     # Check end date only if it's not NULL and not NA
-    if (!is.null(survey_record$end_date) && !is.na(survey_record$end_date)) {
-      end_date <- as.POSIXct(survey_record$end_date)
-      if (!is.na(end_date) && current_time > end_date) {
+    if (!is.null(survey_record$date_end) && !is.na(survey_record$date_end)) {
+      date_end <- as.POSIXct(survey_record$date_end)
+      if (!is.na(date_end) && current_time > date_end) {
         warning(sprintf(
           "[Session %s] Survey has ended. Ended: %s",
-          session_id, format(end_date)
+          session_id, format(date_end)
         ))
         hide_and_show_message("waitingMessage", "surveyEndedMessage")
         return(FALSE)
