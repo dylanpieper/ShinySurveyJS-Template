@@ -60,13 +60,13 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
 
 ## Dynamic Fields
 
-First, run the queries in `setup_example.sql` to create the setup the `surveys`, `config_pid`, `config_vacation`, `config_doctor_clinic`, and `config_staged_json` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
+First, run the queries in `setup_example.sql` to create the setup the `surveys`, `config_pid`, `config_vacation`, `config_doctor_clinic`, and `json_config_stage` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
 
 ### Option 1: Live Tables
 
-For this option, dynamic fields are defined as Shiny server operations that track participants and/or reactively update field choices or text using the URL query and live database table reads. The `config_json` column in the `surveys` table is used to store the dynamic field configuration as a JSON object. While this option is useful for participant tracking and real-time updates, it requires additional database reads that can slow down the app's loading time. Also, this option is not designed to handle a large number of dynamic fields without further customization.
+For this option, dynamic fields are defined as Shiny server operations that track participants and/or reactively update field choices or text using the URL query and live database table reads. The `json_config` column in the `surveys` table is used to store the dynamic field configuration as a JSON object. While this option is useful for participant tracking and real-time updates, it requires additional database reads that can slow down the app's loading time. Also, this option is not designed to handle a large number of dynamic fields without further customization.
 
-Optionally, create and manage your own dynamic fields table by mapping your fields to the `config_json` field in your `surveys` table as a JSON object:
+Optionally, create and manage your own dynamic fields table by mapping your fields to the `json_config` field in your `surveys` table as a JSON object:
 
 -   `table_name`: The table name for the dynamic field
 -   `group_col`: The column name that will be used to filter the dynamic fields
@@ -75,7 +75,7 @@ Optionally, create and manage your own dynamic fields table by mapping your fiel
     -   `group_id_col`: If `select_group` is true, the group ID column used in the query for participant tracking
 -   `choices_col`: The column name used to populate the field choices
 
-An example of the JSON configuration in the `config_json` column:
+An example of the JSON configuration in the `json_config` column:
 
 ``` json
 {
@@ -92,25 +92,25 @@ Use undersores and don't include spaces and special characters for the `group_co
 
 ### Option 2: Staged JSON
 
-For this option, dynamic field configurations are stored as JSON objects in the `staged_json` column of the `surveys` table. After a survey is loaded, an asynchronous worker reads the `staged_json` configuration and re-writes the `json` column if updates are available using the `{future}` package. The table name for the staged JSON configuration is located in the `staged_json_field_name` column. The table should have the following columns:
+For this option, dynamic field configurations are stored as JSON objects in the `json_stage` column of the `surveys` table. After a survey is loaded, an asynchronous worker reads the `json_stage` configuration and re-writes the `json` column if updates are available using the `{future}` package. The table name for the staged JSON configuration is located in the `json_stage_field_name` column. The table should have the following columns:
 
--   `field_name`: The field name for the dynamic field (e.g., age_group)
--   `field_type`: The field type for the dynamic field (e.g., radiogroup)
--   `choices`: The field choices for the dynamic field (e.g., ['18-24', '25-34', '35-44', '45-54', '55-64', '65 or older'])
+-   `field_name`: The field name (e.g., age_group)
+-   `field_type`: The field type (e.g., radiogroup)
+-   `choices`: The field choices (e.g., ['18-24', '25-34', '35-44', '45-54', '55-64', '65 or older'])
 
 This method is useful for staging the JSON configuration with an unlimited number of dynamic fields and no database table reads. However, this option is not designed for participant tracking or real-time updates.
 
 To prevent user load, the asynchronous setup process is randomly assigned a time delay between 1 and 10 seconds before running. The worker runs in the background when the app is initialized and will not interfere with the user experience.
 
-An example of the R/JSON hybrid syntax in the `staged_json` column:
+An example of the R/JSON hybrid syntax in the `json_stage` column:
 
 ``` json
 {
-    "type": config_staged_json["age_group", "field_type"],
+    "type": config_json_stage["age_group", "field_type"],
     "name": "age_group",
     "title": "What is your age group?",
     "isRequired": true,
-    "choices": config_staged_json["age_group", "choices"]
+    "choices": config_json_stage["age_group", "choices"]
 }
 ```
 
@@ -170,10 +170,10 @@ These examples show how to use dynamic fields to track participants and/or updat
     /?survey=survey_product_feedback
     ```
 
-9.  **survey_staged_json**: Static survey with field choices from a staged JSON table
+9.  **survey_json_stage**: Static survey with field choices from a staged JSON table
 
     ```         
-    /?survey=survey_staged_json
+    /?survey=survey_json_stage
     ```
 
 ## Tokenization
@@ -194,6 +194,19 @@ If the `tokens` table does not exist yet, the app will automatically create it. 
     -   Without tokens (same as survey name): `/?survey=name`
     -   With tokens (in the database table): `/?survey=token`
 
+## Activation and Dates
+
+Each survey can be activated or deactivated by setting the `active` column in the `surveys` table to `TRUE` or `FALSE`. Additionally, you can set a time window for each survey by defining the `date_start` and `date_end` columns in the `surveys` table. The app will automatically check the current time against the time window and the activation status of the survey.
+
+## Data Output
+
+The data from the survey is stored along with the following information in the survey data:
+-   `date_created`: Date the survey was created
+-   `duration_complete`: Number of seconds it took to complete the survey
+-   `duration_load`: Seconds it took to load the survey 
+-   `ip_address`: IP address of the user
+-   `session_id` Shiny session ID
+
 ## Database Driver
 
 Easily change the database driver in `database.R` to use any database system compatible with the `DBI` package (see [list of backends](https://github.com/r-dbi/backends#readme)). The `RPostgres` package is used by default.
@@ -204,15 +217,15 @@ The default Shiny app settings are found in the `shiny/shiny.R` file (e.g., host
 
 ## Speed and Performance
 
-Because all of the tokens and surveys are retrieved directly from the database, the app may be slow to load if there are many survey sessions open concurrently or if the database is slow. Additionally, the asynchronous setup process can put more strain on the server.
+Because all of the tokens and surveys are retrieved directly from the database, the app may be slow to load if there are many sessions open concurrently or if the database server is slow. Additionally, the asynchronous setup process can put more strain on the server.
 
 To improve performance, consider the following:
 
 -   Use a database with fast read and write speeds
--   Cache the survey data in cookies
--   Configure the asynchronous setup process to execute at scheduled times, with longer intervals, or at slower frequencies
+-   Cache the survey json
+-   Modify the timing of the asynchronous setup process
 
-Locally, with the nearest Supabase server, I observe 2 to 3 second load times.
+Locally, using the nearest Supabase server, I observe **2 to 3 second** **load times** on average.
 
 ## Roadmap
 
