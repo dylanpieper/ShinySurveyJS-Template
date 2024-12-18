@@ -92,13 +92,15 @@ Use undersores and don't include spaces and special characters for the `group_co
 
 ### Option 2: Staged JSON
 
-For this option, dynamic field configurations are stored as JSON objects in the `staged_json` column of the `surveys` table. After a survey is loaded, an asynchronous worker reads the `staged_json` configuration and re-writes the `json` column if updates are available. The table name for the staged JSON configuration is located in the `staged_json_field_name` column. The table should have the following columns:
+For this option, dynamic field configurations are stored as JSON objects in the `staged_json` column of the `surveys` table. After a survey is loaded, an asynchronous worker reads the `staged_json` configuration and re-writes the `json` column if updates are available using the `{future}` package. The table name for the staged JSON configuration is located in the `staged_json_field_name` column. The table should have the following columns:
 
 -   `field_name`: The field name for the dynamic field (e.g., age_group)
 -   `field_type`: The field type for the dynamic field (e.g., radiogroup)
 -   `choices`: The field choices for the dynamic field (e.g., ['18-24', '25-34', '35-44', '45-54', '55-64', '65 or older'])
 
 This method is useful for staging the JSON configuration with an unlimited number of dynamic fields and no database table reads. However, this option is not designed for participant tracking or real-time updates.
+
+To prevent user load, the asynchronous setup process is randomly assigned a time delay between 1 and 10 seconds before running. The worker runs in the background when the app is initialized and will not interfere with the user experience.
 
 An example of the R/JSON hybrid syntax in the `staged_json` column:
 
@@ -188,8 +190,6 @@ runApp()
 
 If the `tokens` table does not exist yet, the app will automatically create it. The app will also generate tokens for each survey and store them in the database.
 
-To prevent user load, the asynchronous setup process is randomly assigned a time delay between 1 and 10 seconds before running. The worker runs in the background when the app is initialized and will not interfere with the user experience.
-
 2.  Access survey with URL query parameters:
     -   Without tokens (same as survey name): `/?survey=name`
     -   With tokens (in the database table): `/?survey=token`
@@ -200,7 +200,7 @@ Easily change the database driver in `database.R` to use any database system com
 
 ## Publishing
 
-The default Shiny app settings are found in the `shiny/shiny.R` file, including the host, port, and number of workers. It's recommended to setup the app in a containerized environment on a cloud platform like [Shinyapps.io](https://www.shinyapps.io/) or [Azure Web Apps](https://azure.microsoft.com/en-us/products/app-service/web). When scaling, optimize the app by adding traffic monitoring, testing different networking configurations, testing the app's performance under heavy loads, and node balancing. Additionally, consider adjusting the behavior of the future asynchronous setup process. Consider adjusting the system sleep `Sys.sleep(runif(1, 0, 10))` in `app.R` or modifying the setup process to fit your needs.
+The default Shiny app settings are found in the `shiny/shiny.R` file (e.g., host, port, and number of workers). It's recommended to setup the app in a containerized environment on a cloud platform like [Shinyapps.io](https://www.shinyapps.io/) or [Azure Web Apps](https://azure.microsoft.com/en-us/products/app-service/web). When scaling, optimize the app by adding traffic monitoring, testing different networking configurations, testing the app's performance under heavy loads, and node balancing. Additionally, consider adjusting the behavior of the asynchronous setup process. Consider adjusting the system sleep `Sys.sleep(runif(1, 0, 10))` in `app.R` or modifying the setup process to fit your needs.
 
 ## Roadmap
 
