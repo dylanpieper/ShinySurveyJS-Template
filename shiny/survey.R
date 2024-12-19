@@ -375,7 +375,7 @@ surveyServer <- function(input = NULL,
 
         if(nrow(result) == 1) {
           message(sprintf(
-            "[Session %s] Successfully filtered survey",
+            "[Session %s] Located survey",
             session_id
           ))
   
@@ -573,7 +573,7 @@ surveyServer <- function(input = NULL,
     }
   })
 
-  # Process survey data for display
+  # Process survey data and add metadata columns
   process_survey_data <- function(data, session_id, timing_data = NULL) {
     if (is.null(data)) return(NULL)
     
@@ -625,8 +625,9 @@ surveyServer <- function(input = NULL,
       data$row_id <- seq_len(nrow(data))
     }
     
-    # Add date_created
+    # Add dates for created and updated
     data$date_created <- Sys.time()
+    data$date_updated <- Sys.time()
     
     # Remove any empty columns
     data <- data[, colSums(is.na(data)) < nrow(data), drop = FALSE]
@@ -638,8 +639,27 @@ surveyServer <- function(input = NULL,
       }
     }
     
-    # Reorder columns alphabetically
-    data <- data[, sort(names(data)), drop = FALSE]
+    # Define metadata columns that should appear at the end
+    metadata_cols <- c(
+      "session_id",
+      "ip_address", 
+      "duration_load",
+      "duration_complete",
+      "date_created",
+      "date_updated"
+    )
+    
+    # Get all column names
+    all_cols <- names(data)
+    
+    # Remove metadata columns
+    regular_cols <- setdiff(all_cols, metadata_cols)
+    
+    # Combine regular columns with metadata columns in desired order
+    final_col_order <- c(regular_cols, metadata_cols)
+    
+    # Reorder the dataframe using the final column order
+    data <- data[, final_col_order, drop = FALSE]
     
     return(data)
   }

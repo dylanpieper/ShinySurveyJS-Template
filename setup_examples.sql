@@ -258,8 +258,6 @@ VALUES
          "pages": [
              {
                  "name": "satisfaction",
-                 "title": "Product Satisfaction",
-                 "description": "Please tell us about your overall experience with our product",
                  "elements": [
                      {
                          "type": "rating",
@@ -318,8 +316,6 @@ VALUES
              },
              {
                  "name": "feedback",
-                 "title": "Detailed Feedback",
-                 "description": "Please share your specific thoughts about the product",
                  "elements": [
                      {
                          "type": "comment",
@@ -418,7 +414,7 @@ VALUES
 
 INSERT INTO surveys (survey_name, json_stage, json)
 VALUES (
-  'survey_json_stage',
+  'survey_demographics',
   '{
         "title": "Demographics Survey",
         "description": "Static survey with field choices from a staged JSON table",
@@ -427,32 +423,32 @@ VALUES (
                 "name": "demographics",
                 "elements": [
                     {
-                        "type": config_json_stage["age_group", "field_type"],
+                        "type": config_demographics["age_group", "field_type"],
                         "name": "age_group",
                         "title": "What is your age group?",
                         "isRequired": true,
-                        "choices": config_json_stage["age_group", "choices"]
+                        "choices": config_demographics["age_group", "choices"]
                     },
                     {
                         "type": "radiogroup",
                         "name": "gender",
                         "title": "What is your gender?",
                         "isRequired": true,
-                        "choices": config_json_stage["gender", "choices"]
+                        "choices": config_demographics["gender", "choices"]
                     },
                     {
                         "type": "dropdown",
                         "name": "education",
                         "title": "What is your highest level of education?",
                         "isRequired": true,
-                        "choices": config_json_stage["education", "choices"]
+                        "choices": config_demographics["education", "choices"]
                     },
                     {
                         "type": "checkbox",
                         "name": "employment",
                         "title": "What is your current employment status? (Select all that apply)",
                         "isRequired": true,
-                        "choices": config_json_stage["employment", "choices"]
+                        "choices": config_demographics["employment", "choices"]
                     },
                     {
                         "type": "text",
@@ -737,8 +733,8 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Create the config_json_stage table
-CREATE TABLE config_json_stage (
+-- Create the config_demographics table
+CREATE TABLE config_demographics (
     id SERIAL PRIMARY KEY,
     field_name VARCHAR(50),
     field_type VARCHAR(50),
@@ -748,7 +744,7 @@ CREATE TABLE config_json_stage (
 );
 
 -- Insert configurations from the survey
-INSERT INTO config_json_stage (field_name, field_type, choices)
+INSERT INTO config_demographics (field_name, field_type, choices)
 VALUES 
     ('age_group', 
      'radiogroup',
@@ -768,27 +764,27 @@ VALUES
     );
 
 -- Create timestamp update triggers for all tables
-CREATE TRIGGER update_timestamp_trigger
+CREATE TRIGGER update_timestamp_trigger_surveys
     BEFORE UPDATE ON surveys
     FOR EACH ROW
     EXECUTE FUNCTION update_timestamp();
 
-CREATE TRIGGER update_timestamp_trigger
+CREATE TRIGGER update_timestamp_trigger_config_pid
     BEFORE UPDATE ON config_pid
     FOR EACH ROW
     EXECUTE FUNCTION update_timestamp();
     
-CREATE TRIGGER update_timestamp_trigger
+CREATE TRIGGER update_timestamp_trigger_config_vacation
     BEFORE UPDATE ON config_vacation
     FOR EACH ROW
     EXECUTE FUNCTION update_timestamp();
 
-CREATE TRIGGER update_timestamp_trigger
+CREATE TRIGGER update_timestamp_trigger_config_doctor_clinic
     BEFORE UPDATE ON config_doctor_clinic
     FOR EACH ROW
     EXECUTE FUNCTION update_timestamp();
     
-CREATE TRIGGER update_timestamp_trigger
-    BEFORE UPDATE ON config_json_stage
+CREATE TRIGGER update_timestamp_trigger_config_demographics
+    BEFORE UPDATE ON config_demographics
     FOR EACH ROW
     EXECUTE FUNCTION update_timestamp();

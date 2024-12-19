@@ -164,7 +164,7 @@ server <- function(input, output, session) {
       }, finally = {
         if (!is.null(future_pool$pool) && pool::dbIsValid(future_pool$pool)) {
           pool::poolClose(future_pool$pool)
-          message(sprintf("[Session %s] Database connection pool closed successfully", 
+          message(sprintf("[Session %s] Database connection pool closed", 
                           session_token))
         }
       })

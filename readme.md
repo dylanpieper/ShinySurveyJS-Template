@@ -61,7 +61,7 @@ pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
 
 ## Dynamic Fields
 
-First, run the queries in `setup_examples.sql` to create the setup the `surveys`, `config_pid`, `config_vacation`, `config_doctor_clinic`, and `config_json_stage` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
+First, run the queries in `setup_examples.sql` to create the setup the `surveys`, `config_pid`, `config_vacation`, `config_doctor_clinic`, and `config_demographics` tables and insert the example data. In Supabase, you can run these queries by clicking "SQL Editor" in the sidebar.
 
 ### Option 1: Live Tables
 
@@ -109,11 +109,11 @@ An example of the R/JSON hybrid syntax in the `json_stage` column:
 
 ``` json
 {
-    "type": config_json_stage["age_group", "field_type"],
+    "type": config_demographics["age_group", "field_type"],
     "name": "age_group",
     "title": "What is your age group?",
     "isRequired": true,
-    "choices": config_json_stage["age_group", "choices"]
+    "choices": config_demographics["age_group", "choices"]
 }
 ```
 
@@ -173,10 +173,10 @@ These examples show how to use dynamic fields to track participants and/or updat
     /?survey=survey_product_feedback
     ```
 
-9.  **survey_json_stage**: Static survey with field choices from a staged JSON table
+9.  **survey_demographics**: Static survey with field choices from a staged JSON table
 
     ```         
-    /?survey=survey_json_stage
+    /?survey=survey_demographics
     ```
 
 ## Tokenization
@@ -205,12 +205,12 @@ Each survey can be activated or deactivated by setting the `active` column in th
 
 Upon submission, survey responses are automatically stored in a database table named according to the `survey_name`. If the table doesn't exist, the system creates it, and if the table already exists, the system updates it. Each survey response is saved along with the following metadata in the corresponding table:
 
+-   `session_id` Shiny session ID
+-   `ip_address`: IP address of the user
+-   `duration_load`: Seconds it took to load the survey
+-   `duration_complete`: Number of seconds it took to complete the survey
 -   `date_created`: Timestamp when the survey was created
 -   `date_updated`: Timestamp when the survey was updated in the database
--   `duration_complete`: Number of seconds it took to complete the survey
--   `duration_load`: Seconds it took to load the survey
--   `ip_address`: IP address of the user
--   `session_id` Shiny session ID
 
 ## Database Driver
 

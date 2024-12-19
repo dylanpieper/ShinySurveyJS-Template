@@ -108,7 +108,7 @@ db_operations <- R6::R6Class(
           append = TRUE,
           row.names = FALSE
         )
-        private$log_message(sprintf("Successfully wrote to %s table", token_table_name))
+        private$log_message(sprintf("Wrote to %s table", token_table_name))
       }, sprintf("Failed to write to %s table", token_table_name))
     },
     
@@ -158,7 +158,7 @@ db_operations <- R6::R6Class(
             )
           }
         }
-        private$log_message(sprintf("Successfully wrote to %s table", survey_table_name))
+        private$log_message(sprintf("Wrote to %s table", survey_table_name))
       }, sprintf("Failed to write to %s table", survey_table_name))
     },
     
@@ -192,7 +192,7 @@ db_operations <- R6::R6Class(
             DBI::dbGetQuery(conn, query)
           }, sprintf("Failed to read table %s", table_name))
           
-          private$log_message(sprintf("Successfully read '%s' table (attempt %d of %d)", 
+          private$log_message(sprintf("Read '%s' table (attempt %d of %d)", 
                                       table_name, attempt, max_retries))
           return(result)
           
@@ -233,11 +233,22 @@ db_operations <- R6::R6Class(
           # Create new table with columns from data
           col_defs <- private$generate_column_definitions(data)
           create_query <- sprintf(
-            "CREATE TABLE %s (%s);",
+            "CREATE TABLE %s (id SERIAL PRIMARY KEY, %s);",
             DBI::dbQuoteIdentifier(conn, table_name),
             paste(col_defs, collapse = ", ")
           )
           DBI::dbExecute(conn, create_query)
+          
+          # Add the date updated trigger
+          trigger_query <- sprintf(
+            "CREATE TRIGGER update_timestamp_trigger_%s 
+             BEFORE UPDATE ON %s 
+             FOR EACH ROW 
+             EXECUTE FUNCTION update_timestamp();",
+            table_name,  # This will use the table name for the trigger name
+            DBI::dbQuoteIdentifier(conn, table_name)
+          )
+          DBI::dbExecute(conn, trigger_query)
           private$log_message(sprintf("Created new table '%s'", table_name))
         }
       }, sprintf("Failed to create table '%s'", table_name))
