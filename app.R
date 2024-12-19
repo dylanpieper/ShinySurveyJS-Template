@@ -68,7 +68,7 @@ AppState <- R6::R6Class(
           # Check if pool is valid before closing
           if (pool::dbIsValid(self$db_pool$pool)) {
             pool::poolClose(self$db_pool$pool)
-            message(sprintf("[Session %s] Session ended: Database connection pool closed successfully", 
+            message(sprintf("[Session %s] Session ended: Database connection pool closed", 
                             self$session_id))
           }
           self$db_pool$pool <- NULL
@@ -212,7 +212,7 @@ server <- function(input, output, session) {
           ), seed = NULL) %...>% 
             then(function(result) {
               if (result$success) {
-                message(sprintf("[Session %s] Async database setup completed successfully", session$token))
+                message(sprintf("[Session %s] Async database setup completed", session$token))
               } else {
                 warning(sprintf("[Session %s] Async database setup failed: %s", 
                                 session$token, result$error))
