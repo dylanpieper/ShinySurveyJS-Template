@@ -738,7 +738,7 @@ CREATE TABLE config_demographics (
     id SERIAL PRIMARY KEY,
     field_name VARCHAR(50),
     field_type VARCHAR(50),
-    choices JSONB,
+    choices TEXT,
     date_created TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     date_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -748,19 +748,46 @@ INSERT INTO config_demographics (field_name, field_type, choices)
 VALUES 
     ('age_group', 
      'radiogroup',
-     '["18-24", "25-34", "35-44", "45-54", "55-64", "65 or older"]'::jsonb
+     '[
+        {"value": "18_24", "text": "18-24"},
+        {"value": "25_34", "text": "25-34"},
+        {"value": "35_44", "text": "35-44"},
+        {"value": "45_54", "text": "45-54"},
+        {"value": "55_64", "text": "55-64"},
+        {"value": "65_plus", "text": "65 or older"}
+     ]'
     ),
     ('gender',
      'radiogroup',
-     '["Male", "Female", "Non-binary", "Transgender", "Prefer not to say"]'::jsonb
+     '[
+        {"value": "man", "text": "Man"},
+        {"value": "woman", "text": "Woman"},
+        {"value": "nonbinary", "text": "Non-binary"},
+        {"value": "transgender", "text": "Transgender"},
+        {"value": "prefer_not_say", "text": "Prefer not to say"}
+     ]'
     ),
     ('education',
      'dropdown',
-     '["High School or equivalent", "Some College", "Bachelor''s Degree", "Master''s Degree", "Doctorate", "Other"]'::jsonb
+     '[
+        {"value": "high_school", "text": "High School or equivalent"},
+        {"value": "some_college", "text": "Some College"},
+        {"value": "bachelors", "text": "Bachelor''s Degree"},
+        {"value": "masters", "text": "Master''s Degree"},
+        {"value": "doctorate", "text": "Doctorate"},
+        {"value": "other", "text": "Other"}
+     ]'
     ),
     ('employment',
      'checkbox',
-     '["Full-time employed", "Part-time employed", "Self-employed", "Student", "Retired", "Unemployed"]'::jsonb
+     '[
+        {"value": "full_time", "text": "Full-time employed"},
+        {"value": "part_time", "text": "Part-time employed"},
+        {"value": "self_employed", "text": "Self-employed"},
+        {"value": "student", "text": "Student"},
+        {"value": "retired", "text": "Retired"},
+        {"value": "unemployed", "text": "Unemployed"}
+     ]'
     );
 
 -- Create timestamp update triggers for all tables

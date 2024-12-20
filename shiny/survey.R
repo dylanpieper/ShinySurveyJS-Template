@@ -591,7 +591,7 @@ surveyServer <- function(input = NULL,
     
     # Ensure group value is included
     if (!is.null(rv$group_value) && !is.null(rv$dynamic_config$group_col)) {
-      data[[rv$dynamic_config$group_col]] <- gsub("_", " ", rv$group_value)
+      data[[rv$dynamic_config$group_col]] <- rv$group_value
     }
     
     # Add session ID to data
@@ -617,7 +617,7 @@ surveyServer <- function(input = NULL,
     
     # Add group ID if available
     if (!is.null(rv$group_id) && !is.null(rv$dynamic_config$group_id_col)) {
-      data[[rv$dynamic_config$group_id_col]] <- gsub("_", " ", rv$group_id)
+      data[[rv$dynamic_config$group_id_col]] <- rv$group_id
     }
     
     # If data is multirow, then add row number
@@ -631,13 +631,6 @@ surveyServer <- function(input = NULL,
     
     # Remove any empty columns
     data <- data[, colSums(is.na(data)) < nrow(data), drop = FALSE]
-    
-    # Convert all character columns: replace underscores with spaces
-    for (col in names(data)) {
-      if (is.character(data[[col]])) {
-        data[[col]] <- gsub("_", " ", data[[col]])
-      }
-    }
     
     # Define metadata columns that should appear at the end
     metadata_cols <- c(
