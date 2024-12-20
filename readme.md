@@ -103,7 +103,7 @@ For this option, dynamic field configurations are stored as JSON objects in the 
 
 This method is useful for staging the JSON configuration with an unlimited number of dynamic fields and no database table reads. However, this option is not designed for participant tracking or real-time updates.
 
-To prevent user load, the asynchronous setup process is randomly assigned a time delay between 1 and 10 seconds before running. The worker runs in the background when the app is initialized and will not interfere with the user experience.
+To prevent user load, the asynchronous setup process is randomly assigned a delay between 1 and 10 seconds before running. You can adjust the delay time by locating `Sys.sleep(runif(1, 0, 10))` in `app.R`. The worker runs in the background when the app is initialized and will not interfere with the user experience.
 
 An example of the R/JSON hybrid syntax in the `json_stage` column:
 
@@ -231,7 +231,7 @@ To improve performance, consider the following:
 
 ## Publishing
 
-The default Shiny app settings are found in the `shiny/shiny.R` file (e.g., host, port, and number of workers). Publish directly to a cloud platform like [Shinyapps.io](https://www.shinyapps.io/) or setup the app in a container on a service like [Azure Web Apps](https://azure.microsoft.com/en-us/products/app-service/web). When scaling, optimize the app by adding traffic monitoring, testing different networking configurations, testing the app's performance under heavy loads, and node balancing. Additionally, consider adjusting the behavior of the asynchronous setup process. Consider adjusting the system sleep `Sys.sleep(runif(1, 0, 10))` in `app.R` or modifying the setup process to fit your needs.
+The default Shiny app settings are found in the `shiny/shiny.R` file (e.g., host, port, and number of workers). Publish directly to a cloud platform like [Shinyapps.io](https://www.shinyapps.io/) or setup the app in a container on a service like [Azure Web Apps](https://azure.microsoft.com/en-us/products/app-service/web). When scaling, optimize the app by adding traffic monitoring, testing different networking configurations, testing the app's performance under heavy loads, and node balancing.
 
 ## Roadmap
 
