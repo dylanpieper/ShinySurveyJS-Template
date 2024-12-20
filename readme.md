@@ -91,7 +91,7 @@ An example of the JSON configuration in the `json_config` column:
 }
 ```
 
-Use undersores and don't include spaces and special characters for the `group_col` or `group_id_col` values used in the URL query. The app will automatically remove underscores when storing or displaying the data.
+Use undersores and don't include spaces and special characters for the `group_col` or `group_id_col` values used in the URL query. The app will automatically remove underscores when displaying the data.
 
 ### Option 2: Staged JSON
 
