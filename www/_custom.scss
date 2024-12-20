@@ -1,0 +1,63 @@
+// Define your custom colors
+$primary: #66B2E3;
+$primary-light: lighten($primary, 15%);
+$primary-foreground: #fff;
+$background: #fff;
+$foreground: #404040;
+
+// Apply customizations to defaultV2 theme
+.sd-root-modern {
+  // Main colors
+  --primary: #{$primary};
+  --primary-light: #{$primary-light};
+  --primary-foreground: #{$primary-foreground};
+  --background: #{$background};
+  --foreground: #{$foreground};
+
+  // Buttons
+  --sd-button-primary-background: var(--primary);
+  --sd-button-primary-text-color: var(--primary-foreground);
+  .sd-btn--action:hover {
+    background-color: var(--primary-light);
+    color: var(--primary-foreground);
+  }
+
+  // Navigation
+  --sd-navigation-button-color: var(--primary);
+  --sd-navigation-button-background: var(--primary-light);
+
+  // Checkboxes and Radio buttons
+  --sd-checkbox-checked-background: var(--primary);
+  --sd-radio-checked-background: var(--primary);
+
+  // Rating
+  --sd-rating-background: var(--primary);
+
+  // Progress bar
+  --sd-progress-bar-background: var(--primary);
+  --sd-progress-bar-text: var(--primary-foreground);
+
+  // Matrix
+  --sd-matrix-background: var(--primary-light);
+  --sd-matrix-selected-background: var(--primary);
+}
+
+// Additional styling for specific elements
+.sd-question {
+  &.sd-question--selected {
+    border-color: var(--primary);
+  }
+}
+
+.sd-input:focus {
+  border-color: var(--primary);
+}
+
+.sd-rating-item--selected {
+  background-color: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+}
+
+.sd-header__text .sd-title {
+    color: black;
+}
