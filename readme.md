@@ -179,7 +179,7 @@ These examples show how to use dynamic fields to track participants and/or updat
     /?survey=survey_demographics
     ```
 
-    This example also includes the use of coded values.
+    This example also includes the use of coded values
 
 ## Tokenization
 
