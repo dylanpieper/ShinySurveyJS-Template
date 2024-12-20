@@ -1,8 +1,8 @@
 # ShinySurveyJS App
-# Manages multiple surveys using Shiny, SurveyJS, and PostgreSQL
+# A template to host multiple surveys using Shiny + SurveyJS + PostgreSQL
 
 # if (!requireNamespace("pak", quietly = TRUE)) install.packages("pak")
-# pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs", 
+# pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs", "sass",
 #                    "DBI", "RPostgres", "pool", future", "promises", "DT"))
 
 # Packages ----
@@ -11,6 +11,7 @@ library(dotenv)
 library(shiny)
 library(jsonlite)
 library(shinyjs)
+library(sass)
 library(DBI)
 library(RPostgres)
 library(pool)
@@ -18,7 +19,7 @@ library(future)
 library(promises)
 library(DT)
 
-# Source modules
+# Modules
 source("shiny/shiny.R")
 source("shiny/survey.R")
 source("shiny/messages.R")
@@ -29,11 +30,15 @@ dotenv::load_dot_env()
 
 # Use tokens for survey access in URL query
 token_active <- as.logical(Sys.getenv("token_active"))
-show_response <- as.logical(Sys.getenv("show_response")) # Show survey response
-token_table_name <- Sys.getenv("token_table_name") # SQL table name
-survey_table_name <- Sys.getenv("survey_table_name") # SQL table name
 
-# Initialize parallel processing
+# Show survey response as a table
+show_response <- as.logical(Sys.getenv("show_response"))
+
+# SQL table names
+token_table_name <- Sys.getenv("token_table_name")
+survey_table_name <- Sys.getenv("survey_table_name")
+
+# Set future plan
 plan(multisession)
 
 # App state manager
@@ -231,7 +236,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # Initialize survey server
+  # Define survey server
   rv$survey_data <- surveyServer(
     input = input,
     output = output,
