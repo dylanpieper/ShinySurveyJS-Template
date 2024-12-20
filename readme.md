@@ -220,7 +220,7 @@ Easily change the database driver in `database.R` to use any database system com
 
 ## Speed and Performance
 
-Because all of the tokens and surveys are retrieved directly from the database, the app may be slow to load if there are many sessions open concurrently or if the database server is slow. Additionally, the asynchronous setup process can put more strain on the server.
+Because all of the tokens and surveys are retrieved directly from the database, the app may be slow to load if there are many Shiny sessions open concurrently or if the database server is slow. Additionally, the asynchronous setup process can put more strain on the servers.
 
 Locally, using the nearest Supabase server, I observe **2 to 3 second** **load times** on average.
 
