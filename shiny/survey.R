@@ -9,8 +9,8 @@ surveyUI <- function(id = NULL, theme = "defaultV2") {
     tags$head(
       tags$script(src = paste0("https://unpkg.com/survey-jquery/survey.jquery.min.js")),
       tags$link(rel = "stylesheet", href = css_file),
-      tags$style(sass::sass(sass::sass_file("www/_custom.scss"))),
-      tags$script(src = "_survey.js")
+      tags$style(sass::sass(sass::sass_file("www/custom.scss"))),
+      tags$script(src = "survey.js")
     ),
     tags$div(id = "surveyContainer")
   )
