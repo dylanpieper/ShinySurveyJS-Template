@@ -16,7 +16,7 @@ At its core is a powerful form-building engine, complemented by a user-friendly 
 
 SurveyJS's features include conditional logic and branching, robust input validation, a wide variety of question types, customizable themes, multi-page layouts, and multi-language support—all of which make it a excellent choice for building complex survey applications.
 
-The current implementation of ShinySurveyJS specifically uses the [SurveyJS jQuery Form Library](https://www.npmjs.com/package/survey-jquery).
+ShinySurveyJS integrates with the lightweight [SurveyJS jQuery Form Library](https://www.npmjs.com/package/survey-jquery) as a core dependency.
 
 ## Key Features
 
