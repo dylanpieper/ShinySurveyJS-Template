@@ -9,7 +9,7 @@ messageUI <- function() {
           left: 0;
           width: 100%;
           height: 100%;
-          background: linear-gradient(135deg, #e8f7f4, #ffffff);
+          background: linear-gradient(135deg, #DBEEFF, #ffffff);
           z-index: 9999;
           display: flex;
           justify-content: center;
@@ -17,7 +17,7 @@ messageUI <- function() {
           flex-direction: column;
           font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
           font-size: clamp(2rem, 2vw, 1.25rem);
-          color: #1a2b3c;
+          color: #003594;
           text-align: center;
           letter-spacing: -0.01em;
         }
@@ -28,10 +28,10 @@ messageUI <- function() {
           border: 4px solid transparent;
           border-radius: 50%;
           background: linear-gradient(white, white) padding-box,
-                    linear-gradient(45deg, #3498db, #2ecc71) border-box;
+                    linear-gradient(45deg, #003594, #00AD6E) border-box;
           animation: spin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
           margin-bottom: 20px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 12px rgba(0, 53, 148, 0.1);
         }
         @keyframes spin {
           0% { transform: rotate(0deg) scale(1); }
@@ -42,6 +42,7 @@ messageUI <- function() {
         .loading-text {
           position: relative;
           display: inline-block;
+          color: #003594;
         }
         .loading-text::after {
           content: '...';
@@ -59,11 +60,11 @@ messageUI <- function() {
         .error-message {
           font-size: clamp(2rem, 2.5vw, 1.5rem);
           font-weight: 600;
-          color: #e74c3c;
+          color: #003594;
           padding: 1rem 2rem;
           border-radius: 8px;
-          background: rgba(231, 76, 60, 0.1);
-          box-shadow: 0 2px 8px rgba(231, 76, 60, 0.15);
+          background: white;
+          box-shadow: 0 2px 8px rgba(0, 53, 148, 0.15);
           max-width: 90%;
           margin: 0 auto;
         }

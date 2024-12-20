@@ -258,7 +258,7 @@ surveyServer <- function(input = NULL,
     }
 
     if (is.null(group_val)) {
-      hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
+      hide_and_show_message("waitingMessage", "invalidGroupIdMessage")
       return(NULL)
     }
 
@@ -362,7 +362,7 @@ surveyServer <- function(input = NULL,
     }
 
     if (is.null(survey_name)) {
-      hide_and_show_message("waitingMessage", "surveyNotDefinedMessage")
+      hide_and_show_message("waitingMessage", "surveyNotFoundMessage")
       return()
     }
 
