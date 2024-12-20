@@ -233,7 +233,7 @@ To improve performance, consider the following:
 
 ## Publishing
 
-The default Shiny app settings are found in the `shiny/shiny.R` file (e.g., host, port, and number of workers). Publish directly to a cloud platform like [Shinyapps.io](https://www.shinyapps.io/) or setup the app in a container on a service like [Azure Web Apps](https://azure.microsoft.com/en-us/products/app-service/web). When scaling, optimize the app by adding traffic monitoring, testing different networking configurations, testing the app's performance under heavy loads, and node balancing.
+The default Shiny app settings are found in the `shiny/shiny.R` file (e.g., host, port, and number of workers). Publish directly to a cloud platform like [Shinyapps.io](https://www.shinyapps.io/) or setup the app in a container on a service like [Azure Web Apps](https://azure.microsoft.com/en-us/products/app-service/web). When scaling, optimize the app by adding traffic monitoring, testing and analyzing the app's performance under heavy loads, and node balancing.
 
 ## Roadmap
 
