@@ -34,6 +34,13 @@ $(document).ready(function() {
     }
   }
 
+  function updateDocumentTitle(surveyJSON) {
+    // Update document title if survey title is available
+    if (surveyJSON.title) {
+      document.title = surveyJSON.title;
+    }
+  }
+
   function initializeSurvey(surveyJSON) {
     try {
       if (lastLoadedSurveyJSON && areJSONsEqual(lastLoadedSurveyJSON, surveyJSON)) {
@@ -48,6 +55,9 @@ $(document).ready(function() {
       if (typeof surveyJSON === 'string') {
         surveyJSON = JSON.parse(surveyJSON);
       }
+
+      // Update the document title
+      updateDocumentTitle(surveyJSON);
       
       $("#surveyContainer").empty();
       

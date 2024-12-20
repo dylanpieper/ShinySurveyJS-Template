@@ -366,13 +366,13 @@ surveyServer <- function(input = NULL,
       return()
     }
 
-    # Query survey configuration from database
+    # Query survey table from database
     survey_record <- tryCatch(
       {
         result <- db_ops$read_table(survey_table_name) |>
           as.data.frame() |>
           dplyr::filter(survey_name == !!survey_name)
-
+        
         if(nrow(result) == 1) {
           message(sprintf(
             "[Session %s] Located survey",
