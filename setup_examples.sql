@@ -496,8 +496,8 @@ VALUES (
                         "title": "What is your gender?",
                         "isRequired": true,
                         "choices": [
-                            "Male",
-                            "Female",
+                            "Man",
+                            "Woman",
                             "Non-binary",
                             "Prefer not to say"
                         ]

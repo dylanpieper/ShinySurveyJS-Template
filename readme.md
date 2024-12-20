@@ -22,7 +22,7 @@ The current implementation of ShinySurveyJS specifically uses the [SurveyJS jQue
 
 -   Multiple surveys in a single app
 -   Add, remove, or edit surveys without restarting the server
--   URL query parameters use database tables to enable participant tracking and/or dynamically updating field choices (i.e., survey item response options)
+-   URL query parameters use database tables to enable participant tracking and dynamically updating field choices or text (i.e., survey item response options)
 -   URL query tokens prevent user manipulation of public surveys
     -   Automatically generates and stores unique tokens in the database
     -   Supports multiple URL query parameters and configurations
@@ -55,7 +55,7 @@ survey_table_name=surveys
 
 ``` r
 if (!requireNamespace("pak", quietly = TRUE)) install.packages("pak")
-pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs",
+pak::pkg_install(c("R6", "dotenv", "shiny", "jsonlite", "shinyjs", "sass",
                    "DBI", "RPostgres", "pool", "future", "promises", "DT"))
 ```
 
@@ -65,7 +65,7 @@ First, run the queries in `setup_examples.sql` to create the setup the `surveys`
 
 ### Option 1: Live Tables
 
-For this option, dynamic fields are defined as Shiny server operations that track participants and/or reactively update field choices or text using the URL query and live database table reads. The `json_config` column in the `surveys` table is used to store the dynamic field configuration as a JSON object. 
+For this option, dynamic fields are defined as Shiny server operations that track participants and reactively update field choices or text using the URL query and live database table reads. The `json_config` column in the `surveys` table is used to store the dynamic field configuration as a JSON object. 
 
 While this option is useful for participant tracking and real-time updates, it requires additional database reads that can slow down the load time. Also, this option is not designed to handle a large number of dynamic fields without further customization.
 
