@@ -140,7 +140,7 @@ server <- function(input, output, session) {
     
     promise <- future({
       # Randomly delay the setup for concurrent user load testing
-      Sys.sleep(runif(1, 0, 10))
+      Sys.sleep(runif(1, 1, 10))
       future_pool <- db_pool$new()
       future_ops <- db_operations$new(future_pool$pool, session_token)
       future_setup <- db_setup$new(future_ops, session_token)

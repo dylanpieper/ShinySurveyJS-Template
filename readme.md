@@ -103,7 +103,7 @@ For this option, dynamic field configurations are stored as JSON objects in the 
 
 This method is useful for staging the JSON configuration with an unlimited number of dynamic fields and no database table reads. However, this option is not designed for participant tracking or real-time updates.
 
-To prevent user load, the asynchronous setup process is randomly assigned a delay between 1 and 10 seconds before running. You can adjust the delay time by locating `Sys.sleep(runif(1, 0, 10))` in `app.R`. The worker runs in the background when the app is initialized and will not interfere with the user experience.
+To prevent user load, the asynchronous setup process is randomly assigned a delay between 1 and 10 seconds before running. You can adjust the delay time by locating `Sys.sleep(runif(1, 1, 10))` in `app.R`. The worker runs in the background when the app is initialized and will not interfere with the user experience.
 
 An example of the R/JSON hybrid syntax in the `json_stage` column:
 
