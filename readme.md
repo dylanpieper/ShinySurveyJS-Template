@@ -255,7 +255,7 @@ The default Shiny app settings are found in the `shiny/shiny.R` file (e.g., host
 -   🚧 Admin interface to generate links for sharing surveys
 -   🚧 Cookies to cache survey data
 -   🚧 Package for R6 classes
--   🚧 Sentry support
+-   🚧 [Sentry](https://github.com/jcpsantiago/sentryR) support
 -   🚧 Container support
 
 ## Disclaimer
