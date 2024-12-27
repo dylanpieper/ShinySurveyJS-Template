@@ -256,4 +256,4 @@ The default Shiny app settings are found in the `shiny/shiny.R` file (e.g., host
 
 ## Disclaimer
 
-This application template was not built with comprehensive security features. It lacks the robust implementation and testing of secure authentication methods, user management, private data encryption, and protection against common vulnerabilities like SQL injection. It is not suitable for production use. Users must implement their own security measures and accept all associated risks. No warranty is provided.
+This application template was not built with comprehensive security features. It lacks the robust implementation and testing of secure authentication methods, user management, private data encryption, and protection against common vulnerabilities or malicious attacks. Users must implement their own security measures and accept all associated risks. No warranty is provided.
