@@ -58,7 +58,7 @@ shiny_sanitize_errors=true
 shiny_autoreload=false
 ```
 
-Don't forget to add a final new line to the `.env` file.
+**Don't forget to add a final new line to the `.env` file.**
 
 3.  Install the required R packages:
 
