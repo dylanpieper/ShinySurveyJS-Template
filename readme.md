@@ -106,7 +106,7 @@ See the `setup_examples.sql` file to examine how to dynamic field configuration 
 
 ### Option 2: Staged JSON
 
-For this option, dynamic field configurations are stored as JSON objects in the `json_stage` column of the `surveys` table. After a survey is loaded, the asynchronous setup process reads the `json_stage` configuration and rewrites the `json` column if updates are available using the [future](https://github.com/futureverse/future) package. The JSON staging table may have the following columns, for example:
+For this option, dynamic field configurations are stored as JSON objects in the `json_stage` column of the `surveys` table. After a survey is loaded, the asynchronous setup process reads the `json_stage` configuration and rewrites the `json` column if updates are available in the background using the [future](https://github.com/futureverse/future) package. The JSON staging table may have the following columns, for example:
 
 -   `field_name`: The field name (e.g., age_group)
 -   `field_type`: The field type (e.g., radiogroup)
