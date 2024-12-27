@@ -25,7 +25,7 @@ surveyServer <- function(input = NULL,
                          db_ops = NULL,
                          session_id = NULL,
                          survey_table_name = NULL,
-                         show_response = TRUE) {
+                         survey_show_response = TRUE) {
   
   # Initialize reactive values for state management
   rv <- reactiveValues(
@@ -744,8 +744,8 @@ surveyServer <- function(input = NULL,
       # Hide saving message
       shinyjs::hide("savingDataMessage", anim = TRUE, animType = "fade")
       
-      # Show the data container if show_response is TRUE
-      if (show_response) {
+      # Show the data container if survey_show_response is TRUE
+      if (survey_show_response) {
         shinyjs::show("surveyDataContainer")
       }
       

@@ -32,7 +32,7 @@ dotenv::load_dot_env()
 token_active <- as.logical(Sys.getenv("token_active"))
 
 # Show survey response as a table
-show_response <- as.logical(Sys.getenv("show_response"))
+survey_show_response <- as.logical(Sys.getenv("survey_show_response"))
 
 # SQL table names
 token_table_name <- Sys.getenv("token_table_name")
@@ -466,7 +466,7 @@ server <- function(input, output, session) {
     db_ops = app_state$db_ops,
     session_id = session$token,
     survey_table_name = survey_table_name,
-    show_response = show_response
+    survey_show_response = survey_show_response
   )
   
   session$onSessionEnded(function() {

@@ -117,7 +117,7 @@ messageUI <- function() {
       class = "message-container",
       style = "display: none;",
       div(class = "loading-spinner"),
-      div(class = "loading-text", "Saving Data")
+      div(class = "loading-text", "Saving Response")
     )
   )
 }
