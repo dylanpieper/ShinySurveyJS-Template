@@ -80,12 +80,12 @@ While this option is useful for participant tracking and real-time updates, it r
 
 Create and manage your own dynamic fields table by mapping your fields to the `json_config` field in your `surveys` table as a JSON object:
 
--   `table_name`: The table name for the dynamic field
--   `group_col`: The column name that will be used to filter the dynamic fields
--   `select_group`: A logical for using the group column to populate the field choices in the JSON field (`true`) or defining the group in the URL query for tracking (`false`)
+-   `table_name`: The table name for the dynamic field configuration
+-   `group_col`: The column name for the group column
+-   `select_group`: A logical for using the group column to populate the choices or text in the JSON for user selection (`true`) or defining the group in the URL query for tracking (`false`)
     -   `group_id_table_name`: If `select_group` is `true`, the table name to locate the group ID column used in the query for participant tracking
     -   `group_id_col`: If `select_group` is `true`, the group ID column used in the query for participant tracking
--   `choices_col`: The column name used to populate the field choices
+-   `choices_col`: The column name for the choices to populate in the group column
 
 An example of the JSON configuration in the `json_config` column:
 
@@ -100,7 +100,9 @@ An example of the JSON configuration in the `json_config` column:
 }
 ```
 
-Use undersores and don't include spaces and special characters for the `group_col` or `group_id_col` values used in the URL query. The app will automatically remove underscores when displaying the data.
+Use underscores and don't include spaces and special characters for the `group_col` or `group_id_col` values used in the URL query. The app will automatically remove underscores when displaying the data.
+
+See the `setup_examples.sql` file to examine how to dynamic field configuration tables (prefixed with `config_`) are structured.
 
 ### Option 2: Staged JSON
 
