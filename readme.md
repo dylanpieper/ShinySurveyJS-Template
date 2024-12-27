@@ -45,10 +45,17 @@ DB_PORT=5432
 DB_NAME=postgres
 DB_USER=username
 DB_PASSWORD=password
+survey_table_name=surveys
+token_table_name=tokens
 token_active=TRUE
 show_response=TRUE
-token_table_name=tokens
-survey_table_name=surveys
+async_cooldown=30
+shiny_host=0.0.0.0
+shiny_port=3838
+shiny_workers=100 
+shiny_idle_timeout=1800
+shiny_sanitize_errors=false
+shiny_autoreload=false
 ```
 
 3.  Install the required R packages:
@@ -103,7 +110,7 @@ For this option, dynamic field configurations are stored as JSON objects in the 
 
 This method is useful for staging the JSON configuration with an unlimited number of dynamic fields and no database table reads. However, this option is not designed for participant tracking or real-time updates.
 
-To prevent user load, the asynchronous setup process is randomly assigned a delay between 1 and 10 seconds before running. You can adjust the delay time by locating `Sys.sleep(runif(1, 1, 10))` in `app.R`. The worker runs in the background when the app is initialized and will not interfere with the user experience.
+To prevent user load, the asynchronous setup process has a cooldown feature that can only be run by one session every 30 seconds (set as `async_cooldown` in `.env`). The worker runs in the background when the app is initialized and will not interfere with the user experience.
 
 An example of the R/JSON hybrid syntax in the `json_stage` column:
 
@@ -220,7 +227,7 @@ Easily change the database driver in `database.R` to use any database system com
 
 ## Speed and Performance
 
-Because all of the tokens and surveys are retrieved directly from the database, the app may be slow to load if there are many Shiny sessions open concurrently or if the database server is slow. Additionally, the asynchronous setup process can put more strain on the servers.
+Because all of the tokens and surveys are retrieved directly from the database, the app may be slow to load if there are many Shiny sessions open concurrently or if the database server is slow.
 
 Locally, using the nearest Supabase server, I observe **2 to 3 second** **load times** on average.
 
@@ -229,7 +236,6 @@ To improve performance, consider the following:
 -   Use a database with fast read and write speeds
 -   Optimize the queries used to retrieve the tokens and surveys
 -   Cache the database tables in memory (e.g., using [Redis](https://redis.io/) via the [redux](https://github.com/richfitz/redux) package)
--   Modify the timing of the asynchronous setup process
 
 ## Publishing
 

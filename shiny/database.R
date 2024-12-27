@@ -6,18 +6,7 @@ db_pool <- R6::R6Class(
   public = list(
     pool = NULL,
     initialize = function() {
-      dotenv::load_dot_env()
-      
-      self$pool <- pool::dbPool(
-        RPostgres::Postgres(),
-        host = Sys.getenv("DB_HOST"),
-        port = Sys.getenv("DB_PORT"),
-        dbname = Sys.getenv("DB_NAME"),
-        user = Sys.getenv("DB_USER"),
-        password = Sys.getenv("DB_PASSWORD"),
-        minSize = 1,
-        maxSize = Inf
-      )
+      self$pool <- getDefaultReactiveDomain()$userData$global_pool
     }
   )
 )
