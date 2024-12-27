@@ -54,9 +54,11 @@ shiny_host=0.0.0.0
 shiny_port=3838
 shiny_workers=100 
 shiny_idle_timeout=1800
-shiny_sanitize_errors=false
+shiny_sanitize_errors=true
 shiny_autoreload=false
 ```
+
+Don't forget to add a final new line to the `.env` file.
 
 3.  Install the required R packages:
 
