@@ -33,11 +33,11 @@ ShinySurveyJS integrates with the lightweight [SurveyJS jQuery Form Library](htt
 
 The ShinySurveyJS architecture integrates three main layers: a frontend that combines SurveyJS's JavaScript form library with Shiny's UI components, a backend layer powered by Shiny server that handles token management, dynamic field processing, and asynchronous database operations, and a PostgreSQL database layer that stores surveys, dynamic field configurations, and tokens. The system uses URL query parameters and tokenization for secure access control, while supporting multiple concurrent surveys through a single server instance. The architecture employs an asynchronous setup process that runs in the background to handle database updates and JSON staging, with built-in cooldown periods to manage server load. This modular design allows for flexible survey management, dynamic field updates, and secure data collection while maintaining scalability.
 
-**Figure 1**. Overview of the Server Layers
+**Figure 1**. Overview of Server Layers
 
 ![](ShinySurveyJS-Diagram.png)
 
-**Figure 2**. Two Processes of the Server
+**Figure 2**. Two Processes of Server
 
 ![](ShinySurveyJS-Diagram-Simple.png)
 
