@@ -35,11 +35,11 @@ The ShinySurveyJS architecture integrates three main layers: a frontend that com
 
 **Figure 1**. Two Processes of the Survey Server
 
-![](ShinySurveyJS-Diagram-Simple.png){width="700"}
+![](ShinySurveyJS-Diagram-Simple.png)
 
 **Figure 2**. Overview of the Survey Server Layers
 
-![](ShinySurveyJS-Diagram.png){width="700"}
+![](ShinySurveyJS-Diagram.png)
 
 ## Get Started
 
