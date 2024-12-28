@@ -37,7 +37,7 @@ ShinySurveyJS integrates with the lightweight [SurveyJS jQuery Form Library](htt
 git clone https://github.com/dylanpieper/ShinySurveyJS.git
 ```
 
-2.  Create a `.env` file, modifying the following template with your database credentials. In Supabase, you can find project connect details by clicking "Connect" in the top bar.
+2.  Create a `.env` file, modifying the following template with your database credentials. In Supabase, you can find project connect details by clicking "Connect" in the top bar. Also use this file to set other environment variables.
 
 ``` env
 DB_HOST=aws-0-us-east-2.pooler.supabase.com
@@ -54,8 +54,8 @@ shiny_host=0.0.0.0
 shiny_port=3838
 shiny_workers=100 
 shiny_idle_timeout=1800
-shiny_sanitize_errors=true
-shiny_autoreload=false
+shiny_sanitize_errors=TRUE
+shiny_autoreload=FALSE
 ```
 
 **Don't forget to add a final new line to the `.env` file.**
