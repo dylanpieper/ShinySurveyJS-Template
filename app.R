@@ -69,11 +69,6 @@ onStop(function() {
   }
 })
 
-# Setup cooldown
-.globals <- new.env()
-.globals$last_setup_time <- NULL
-.globals$setup_lock <- FALSE
-
 # App state manager
 AppState <- R6::R6Class(
   "AppState",
@@ -110,7 +105,12 @@ AppState <- R6::R6Class(
   )
 )
 
-# Connection manager
+# Setup cooldown
+.globals <- new.env()
+.globals$last_setup_time <- NULL
+.globals$setup_lock <- FALSE
+
+# Connection manager for the async worker and cooldown
 ConnectionManager <- R6::R6Class(
   "ConnectionManager",
   private = list(

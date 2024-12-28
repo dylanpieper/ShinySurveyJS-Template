@@ -522,11 +522,11 @@ db_setup <- R6::R6Class(
       }
       
       if (is.null(token_table_name) || !is.character(token_table_name)) {
-        stop(private$format_message("Invalid token_table_name"))
+        stop(private$format_message("Invalid 'token_table_name'"))
       }
       
       if (is.null(survey_table_name) || !is.character(survey_table_name)) {
-        stop(private$format_message("Invalid survey_table_name"))
+        stop(private$format_message("Invalid 'survey_table_name'"))
       }
       
       required_columns <- c("object", "token", "date_created", "date_updated")
