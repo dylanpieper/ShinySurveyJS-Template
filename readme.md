@@ -126,7 +126,7 @@ For this option, dynamic field configurations are stored as JSON objects in the 
 
 This method is useful for staging the JSON configuration with an unlimited number of dynamic fields and no database table reads. However, this option is not designed for participant tracking or real-time updates.
 
-To prevent user load, the asynchronous setup process has a cooldown feature that can only be run by one session every 30 seconds (set as `async_cooldown` in `.env`). The worker runs in the background when the app is initialized and will not interfere with the user experience.
+To prevent user load, the asynchronous setup process has a cooldown feature that can only be run by one session every 30 seconds (set as `async_cooldown` in `.env`). The process runs in the background when the app is initialized and will not interfere with the user experience.
 
 An example of the R/JSON hybrid syntax in the `json_stage` column:
 
