@@ -218,7 +218,8 @@ If the `tokens` table does not exist yet, the asynchronous setup process will au
 
 If new tokens are created, users can access them on the next page load after the process runs. You can customize the tokenization algorithm in `shiny/tokens.R`.
 
-2.  Access survey with URL query parameters:
+2.  Set the `.env` file to `token_active=TRUE`
+3.  Access survey with URL query parameters:
     -   Without tokens (same as survey name): `/?survey=name`
     -   With tokens (in the database table): `/?survey=token`
 
