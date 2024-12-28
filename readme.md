@@ -12,7 +12,7 @@ ShinySurveyJS integrates the frontend flexibility of the [SurveyJS](https://surv
 
 [SurveyJS](https://surveyjs.io/) is "a free and open-source MIT-licensed JavaScript form builder library that allows you to design dynamic, data-driven, multi-language survey forms."
 
-At its core is a powerful form-building engine, complemented by a user-friendly [visual editor](https://surveyjs.io/create-free-survey) and extensive [documentation](https://surveyjs.io/documentation). Built on TypeScript with reactive components, the framework provides type safety and responsive design while working with any backend or database.
+At its core is a powerful form-building engine, complemented by a user-friendly [visual editor](https://surveyjs.io/create-free-survey), that creates a JSON object, and extensive [documentation](https://surveyjs.io/documentation). Built on TypeScript with reactive components, the framework provides type safety and responsive design while working with any backend or database.
 
 SurveyJS's features include conditional logic and branching, robust input validation, a wide variety of question types, customizable themes, multi-page layouts, and multi-language support—all of which make it a excellent choice for building complex survey applications.
 
@@ -33,11 +33,11 @@ ShinySurveyJS integrates with the lightweight [SurveyJS jQuery Form Library](htt
 
 The ShinySurveyJS architecture integrates three main layers: a frontend that combines SurveyJS's JavaScript form library with Shiny's UI components, a backend layer powered by Shiny server that handles token management, dynamic field processing, and asynchronous database operations, and a PostgreSQL database layer that stores surveys, dynamic field configurations, and tokens. The system uses URL query parameters and tokenization for secure access control, while supporting multiple concurrent surveys through a single server instance. The architecture employs an asynchronous setup process that runs in the background to handle database updates and JSON staging, with built-in cooldown periods to manage server load. This modular design allows for flexible survey management, dynamic field updates, and secure data collection while maintaining scalability.
 
-**Figure 1**. Two Processes of the Survey Server
+**Figure 1**. Two Processes of the Server
 
 ![](ShinySurveyJS-Diagram-Simple.png)
 
-**Figure 2**. Overview of the Survey Server Layers
+**Figure 2**. Overview of the Server Layers
 
 ![](ShinySurveyJS-Diagram.png)
 
