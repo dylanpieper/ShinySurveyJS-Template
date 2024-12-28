@@ -229,7 +229,7 @@ Upon submission, survey responses are automatically stored in a database table n
 
 Easily change the database driver in `database.R` to use any database system compatible with the `DBI` package (see [list of backends](https://github.com/r-dbi/backends#readme)). The `RPostgres` package is used by default.
 
-## Speed and Performance
+## Performance
 
 Because all of the tokens and surveys are retrieved directly from the database, the app may be slow to load if there are many Shiny sessions open concurrently or if the database server is slow.
 
