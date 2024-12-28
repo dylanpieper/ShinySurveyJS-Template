@@ -29,6 +29,14 @@ ShinySurveyJS integrates with the lightweight [SurveyJS jQuery Form Library](htt
     -   Enhances security by obscuring direct access and only accepting valid tokens
 -   PostgreSQL cloud platforms like [Supabase](https://supabase.com/) offer free and paid database solutions
 
+## Architecture
+
+The ShinySurveyJS architecture integrates three main layers: a frontend that combines SurveyJS's JavaScript form library with Shiny's UI components, a backend layer powered by Shiny server that handles token management, dynamic field processing, and asynchronous database operations, and a PostgreSQL database layer that stores surveys, configurations, and tokens. The system uses URL query parameters and tokenization for secure access control, while supporting multiple concurrent surveys through a single server instance. The architecture employs an asynchronous setup process that runs in the background to handle database updates and JSON staging, with built-in cooldown periods to manage server load. This modular design allows for flexible survey management, dynamic field updates, and secure data collection while maintaining scalability.
+
+![](ShinySurveyJS-Diagram-Simple.png)
+
+![](ShinySurveyJS-Diagram.png)
+
 ## Get Started
 
 1.  Clone the repository:
