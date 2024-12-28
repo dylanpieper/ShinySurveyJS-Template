@@ -88,7 +88,7 @@ First, run the queries in `setup_examples.sql` to create the setup the `surveys`
 
 For this option, dynamic fields are defined as Shiny server operations that track participants and reactively update field choices or text using the URL query and live database table reads. The `json_config` column in the `surveys` table is used to store the dynamic field configuration as a JSON object.
 
-While this option is useful for participant tracking and real-time updates, it requires additional database reads that can slow down the load time. Also, this option is not designed to handle a large number of dynamic fields without further customization.
+While this option is useful for participant tracking and real-time updates, it requires additional database reads that can slow down the load time. Also, this option is not designed to handle a large number of dynamic fields without further customization in the `shiny/survey.R` file.
 
 Create and manage your own dynamic fields table by mapping your fields to the `json_config` field in your `surveys` table as a JSON object:
 
