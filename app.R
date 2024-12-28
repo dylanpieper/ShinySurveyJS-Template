@@ -196,7 +196,6 @@ ConnectionManager <- R6::R6Class(
       })
     },
     
-    # [Previous get_pool and return_pool methods remain unchanged]
     get_pool = function(session_id) {
       if (is.null(private$.active_sessions[[session_id]])) {
         return(NULL)
