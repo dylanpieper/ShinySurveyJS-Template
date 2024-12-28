@@ -181,7 +181,7 @@ ConnectionManager <- R6::R6Class(
           last_setup_time <- as.POSIXct(readLines(private$.last_setup_file)[1])
           elapsed_time <- as.numeric(difftime(Sys.time(), last_setup_time, units = "secs"))
           time_remaining <- ceiling(private$.setup_cooldown - elapsed_time)
-          message(sprintf("[Session %s] Async setup cooldown in effect (%d seconds remaining)", 
+          message(sprintf("[Session %s] Not running async setup (%d seconds remaining)", 
                           session_id, time_remaining))
           return(FALSE)
         }
@@ -189,7 +189,7 @@ ConnectionManager <- R6::R6Class(
         private$update_last_setup_time()
         private$.active_sessions[[session_id]] <- Sys.time()
         
-        message(sprintf("[Session %s] Async setup request granted", session_id))
+        message(sprintf("[Session %s] Granted access to async setup", session_id))
         return(TRUE)
       }, finally = {
         private$release_setup_lock()
@@ -236,7 +236,7 @@ ConnectionManager <- R6::R6Class(
       }
       
       private$.active_sessions[[session_id]] <- NULL
-      message(sprintf("[Session %s] Pool returned", session_id))
+      message(sprintf("[Session %s] Returned pool", session_id))
     }
   )
 )
@@ -310,7 +310,7 @@ server <- function(input, output, session) {
         stop("Failed to create database pool")
       }
       
-      message(sprintf("[Session %s] Database pool created", session_token))
+      message(sprintf("[Session %s] Created database pool", session_token))
       
       tryCatch({
         # Create operations instance

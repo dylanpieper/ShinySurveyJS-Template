@@ -550,9 +550,9 @@ db_setup <- R6::R6Class(
           updated_token_table <- self$generate_tokens(token_table, token_table_name, survey_table_name)
           
           if (mode == "initial") {
-            private$log_message("Database setup completed in 'initial' mode")
+            private$log_message("Completed database setup in 'initial' mode")
           } else {
-            private$log_message("Token generation completed")
+            private$log_message("Completed token generation")
           }
           
           return(invisible(updated_token_table))
