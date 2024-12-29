@@ -72,7 +72,7 @@ ui <- fluidPage(
       div(
         id = "surveyDataContainer",
         style = "text-align: left; margin-top: 20px;",
-        tags$p(tags$strong("Data Received:")),
+        tags$p(tags$strong("Reponse Received:")),
         div(
           style = "display: flex;",
           DT::dataTableOutput("surveyData")
