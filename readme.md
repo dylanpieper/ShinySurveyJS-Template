@@ -235,6 +235,7 @@ Upon submission, survey responses are automatically stored in a database table n
 -   `ip_address`: IP address of the user
 -   `duration_load`: Seconds it took to load the survey
 -   `duration_complete`: Number of seconds it took to complete the survey
+-   `duration_save`: Number of seconds it took to save the survey
 -   `date_created`: Timestamp when the survey was created
 -   `date_updated`: Timestamp when the survey was updated in the database
 

@@ -38,7 +38,9 @@ surveyServer <- function(input = NULL,
     token_data = NULL,             # Store token data
     display_data = NULL,           # Processed data for display
     time_load = NULL,              # Time when survey JSON is sent
-    time_json_load = NULL         # Time when JSON is loaded
+    time_json_load = NULL,         # Time when JSON is loaded
+    time_survey_complete = NULL,   # Time when survey is completed
+    time_data_save = NULL          # Time when data is saved
   )
   
   # Record timing data on page load
@@ -638,123 +640,165 @@ surveyServer <- function(input = NULL,
       "ip_address", 
       "duration_load",
       "duration_complete",
+      "duration_save",
       "date_created",
       "date_updated"
     )
     
-    # Get all column names
+    # Define groups of columns for ordering
     all_cols <- names(data)
     
-    # Remove metadata columns
+    # Get system columns that exist
+    system_cols <- intersect(c("session_id", "ip_address"), all_cols)
+    
+    # Get duration columns that exist (in order)
+    duration_cols <- grep("^duration_", all_cols, value = TRUE)
+    duration_cols <- intersect(
+      c("duration_load", "duration_complete", "duration_save"),
+      duration_cols
+    )
+    
+    # Get date columns that exist (in order)
+    date_cols <- intersect(c("date_created", "date_updated"), all_cols)
+    
+    # Get all other columns (non-system, non-duration, non-date)
+    metadata_cols <- c(system_cols, duration_cols, date_cols)
     regular_cols <- setdiff(all_cols, metadata_cols)
     
-    # Combine regular columns with metadata columns in desired order
-    final_col_order <- c(regular_cols, metadata_cols)
+    # Combine in desired order
+    final_col_order <- c(regular_cols, system_cols, duration_cols, date_cols)
     
-    # Reorder the dataframe using the final column order
-    data <- data[, final_col_order, drop = FALSE]
+    # Only reorder if we have columns to reorder
+    if (length(final_col_order) > 0) {
+      data <- data[, final_col_order, drop = FALSE]
+    }
     
     return(data)
   }
   
   # Handle survey completion and data processing
   observeEvent(input$surveyData, {
-    tryCatch({
-      # Parse the survey data
-      data <- jsonlite::fromJSON(input$surveyData)
-      
-      # Show saving message
-      shinyjs::show("savingDataMessage", anim = TRUE, animType = "fade")
-      
-      # Calculate timing data
-      timing_data <- list()
-      
-      # Calculate load duration (time between sending JSON and first interaction)
-      if (!is.null(rv$time_load) && !is.null(rv$time_json_load)) {
-        timing_data$duration_load <- as.numeric(difftime(rv$time_json_load, 
-                                                         rv$time_load, 
-                                                         units = "secs"))
-      }
-      
-      # Calculate completion duration (time between first interaction and submission)
-      if (!is.null(rv$time_json_load)) {
-        timing_data$duration_complete <- as.numeric(difftime(Sys.time(), 
-                                                             rv$time_json_load, 
-                                                             units = "secs"))
-      }
-      
-      # Store timing data
-      rv$timing_data <- timing_data
-      
-      # Add timing data to survey response
-      if (is.list(data) && !is.data.frame(data)) {
-        data <- c(data, timing_data)
-      } else if (is.data.frame(data)) {
-        for (field in names(timing_data)) {
-          data[[field]] <- rep(timing_data[[field]], nrow(data))
-        }
-      }
-      
-      # Add group value if it was set from URL
-      if (!is.null(rv$group_value) && !is.null(rv$dynamic_config$group_col)) {
-        if (is.list(data) && !is.data.frame(data)) {
-          data[[rv$dynamic_config$group_col]] <- rv$group_value
-        } else if (is.data.frame(data)) {
-          data[[rv$dynamic_config$group_col]] <- rep(rv$group_value, nrow(data))
-        }
-      }
-      
-      # Add group ID if available
-      if (!is.null(rv$group_id) && !is.null(rv$dynamic_config$group_id_col)) {
-        if (is.list(data) && !is.data.frame(data)) {
-          data[[rv$dynamic_config$group_id_col]] <- rv$group_id
-        } else if (is.data.frame(data)) {
-          data[[rv$dynamic_config$group_id_col]] <- rep(rv$group_id, nrow(data))
-        }
-      }
-      
-      # Store raw survey data
-      rv$survey_data <- data
-      
-      # Process data for display, including timing data
-      rv$display_data <- process_survey_data(data, session_id, rv$timing_data)
-      
-      # Save processed data to database
-      if (!is.null(rv$display_data)) {
-        tryCatch({
-          # Get survey name from config
-          survey_name <- rv$survey_config$survey_name
-          
-          if (is.null(survey_name)) {
-            stop("Survey name not found in configuration")
-          }
-          
-          # Create table if it doesn't exist
-          db_ops$create_survey_data_table(survey_name, rv$display_data)
-          
-          # Update table schema if needed and insert data
-          db_ops$update_survey_data_table(survey_name, rv$display_data)
-          
-        }, error = function(e) {
-          warning(sprintf("[Session %s] Error saving survey data: %s", 
-                          session_id, e$message))
-        })
-      }
-      
-      # Hide saving message
-      shinyjs::hide("savingDataMessage", anim = TRUE, animType = "fade")
-      
-      # Show the data container if survey_show_response is TRUE
-      if (survey_show_response) {
-        shinyjs::show("surveyDataContainer")
-      }
-      
+    # Parse the survey data
+    data <- tryCatch({
+      jsonlite::fromJSON(input$surveyData)
     }, error = function(e) {
-      # Hide saving message in case of error
+      warning(sprintf("[Session %s] Error parsing survey data: %s", session_id, e$message))
+      return(NULL)
+    })
+    
+    if (is.null(data)) {
+      return()
+    }
+    
+    # Show saving message
+    shinyjs::show("savingDataMessage", anim = TRUE, animType = "fade")
+    
+    # Record completion time
+    rv$time_survey_complete <- Sys.time()
+    
+    # Calculate all timing data upfront
+    timing_data <- list()
+    
+    # Calculate load duration (time between page load and JSON load)
+    if (!is.null(rv$time_load) && !is.null(rv$time_json_load)) {
+      timing_data$duration_load <- as.numeric(difftime(rv$time_json_load,
+                                                       rv$time_load,
+                                                       units = "secs"))
+    }
+    
+    # Calculate completion duration (time between JSON load and submission)
+    if (!is.null(rv$time_json_load) && !is.null(rv$time_survey_complete)) {
+      timing_data$duration_complete <- as.numeric(difftime(rv$time_survey_complete,
+                                                           rv$time_json_load,
+                                                           units = "secs"))
+    }
+    
+    # Store timing data in reactive values
+    rv$timing_data <- timing_data
+    
+    # Add group value if it was set from URL
+    if (!is.null(rv$group_value) && !is.null(rv$dynamic_config$group_col)) {
+      if (is.list(data) && !is.data.frame(data)) {
+        data[[rv$dynamic_config$group_col]] <- rv$group_value
+      } else if (is.data.frame(data)) {
+        data[[rv$dynamic_config$group_col]] <- rep(rv$group_value, nrow(data))
+      }
+    }
+    
+    # Add group ID if available
+    if (!is.null(rv$group_id) && !is.null(rv$dynamic_config$group_id_col)) {
+      if (is.list(data) && !is.data.frame(data)) {
+        data[[rv$dynamic_config$group_id_col]] <- rv$group_id
+      } else if (is.data.frame(data)) {
+        data[[rv$dynamic_config$group_id_col]] <- rep(rv$group_id, nrow(data))
+      }
+    }
+    
+    # Add timing data to the survey data
+    if (is.list(data) && !is.data.frame(data)) {
+      data <- c(data, timing_data)
+    } else if (is.data.frame(data)) {
+      for (field in names(timing_data)) {
+        data[[field]] <- rep(timing_data[[field]], nrow(data))
+      }
+    }
+    
+    # Store raw survey data before processing
+    rv$survey_data <- data
+    
+    # Get survey name from config
+    survey_name <- rv$survey_config$survey_name
+    if (is.null(survey_name)) {
+      warning(sprintf("[Session %s] Survey name not found in configuration", session_id))
       shinyjs::hide("savingDataMessage", anim = TRUE, animType = "fade")
-      warning(sprintf("[Session %s] Error processing survey data: %s", 
+      return()
+    }
+    
+    # Record time before saving
+    rv$time_save_start <- Sys.time()
+    
+    # Create temporary processed data for database schema
+    temp_processed_data <- process_survey_data(data, session_id, timing_data)
+    
+    # Database operations with error handling
+    tryCatch({
+      # Create table if it doesn't exist
+      db_ops$create_survey_data_table(survey_name, temp_processed_data)
+      
+      # Update table schema if needed and insert data
+      db_ops$update_survey_data_table(survey_name, temp_processed_data)
+      
+      # Record data save completion time and calculate duration
+      rv$time_data_save <- Sys.time()
+      if (!is.null(rv$time_save_start)) {
+        timing_data$duration_save <- as.numeric(difftime(rv$time_data_save,
+                                                         rv$time_save_start,
+                                                         units = "secs"))
+        # Update the stored timing data
+        rv$timing_data <- timing_data
+        
+        # Add save duration to the data
+        if (is.list(data) && !is.data.frame(data)) {
+          data <- c(data, list(duration_save = timing_data$duration_save))
+        } else if (is.data.frame(data)) {
+          data$duration_save <- rep(timing_data$duration_save, nrow(data))
+        }
+      }
+      
+      # Process the final data with all timing information
+      rv$display_data <- process_survey_data(data, session_id, timing_data)
+    }, error = function(e) {
+      warning(sprintf("[Session %s] Error saving data to database: %s",
                       session_id, e$message))
     })
+    
+    # Hide saving message
+    shinyjs::hide("savingDataMessage", anim = TRUE, animType = "fade")
+    
+    # Show the data container if survey_show_response is TRUE
+    if (survey_show_response) {
+      shinyjs::show("surveyDataContainer")
+    }
   })
   
   # Render the survey data table with paging
