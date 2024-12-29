@@ -218,7 +218,7 @@ If the `tokens` table does not exist yet, the asynchronous setup process will au
 
 If new tokens are created, users can access them on the next page load after the process runs. You can customize the tokenization algorithm in `shiny/tokens.R`.
 
-2.  Set the `.env` file to `token_active=TRUE`
+2.  Set the `.env` file to `token_active=TRUE` to activate tokens
 3.  Access survey with URL query parameters:
     -   Without tokens (same as survey name): `/?survey=name`
     -   With tokens (in the database table): `/?survey=token`
@@ -256,7 +256,7 @@ To improve performance, consider the following:
 
 ## Publishing
 
-The default Shiny app settings are found in the `shiny/shiny.R` file (e.g., host, port, and number of workers). Publish directly to a cloud platform like [Shinyapps.io](https://www.shinyapps.io/) or setup the app in a container on a service like [Azure Web Apps](https://azure.microsoft.com/en-us/products/app-service/web). When scaling up, consider adding traffic monitoring, load testing, and node balancing or container clustering.
+The default Shiny app settings are found in the `shiny/shiny.R` file (e.g., host, port, and number of workers). Publish directly to a cloud platform like [Shinyapps.io](https://www.shinyapps.io/) or setup the app in a container on a service like [Azure Web Apps](https://azure.microsoft.com/en-us/products/app-service/web). When scaling up, consider adding traffic monitoring, load testing, and node balancing.
 
 ## Roadmap
 
