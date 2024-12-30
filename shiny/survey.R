@@ -39,8 +39,7 @@ surveyServer <- function(input = NULL,
     display_data = NULL,           # Processed data for display
     time_load = NULL,              # Time when survey JSON is sent
     time_json_load = NULL,         # Time when JSON is loaded
-    time_survey_complete = NULL,   # Time when survey is completed
-    time_data_save = NULL          # Time when data is saved
+    time_survey_complete = NULL    # Time when survey is completed
   )
   
   # Record timing data on page load
@@ -640,7 +639,6 @@ surveyServer <- function(input = NULL,
       "ip_address", 
       "duration_load",
       "duration_complete",
-      "duration_save",
       "date_created",
       "date_updated"
     )
@@ -654,7 +652,7 @@ surveyServer <- function(input = NULL,
     # Get duration columns that exist (in order)
     duration_cols <- grep("^duration_", all_cols, value = TRUE)
     duration_cols <- intersect(
-      c("duration_load", "duration_complete", "duration_save"),
+      c("duration_load", "duration_complete"),
       duration_cols
     )
     
@@ -754,36 +752,16 @@ surveyServer <- function(input = NULL,
       return()
     }
     
-    # Record time before saving
-    rv$time_save_start <- Sys.time()
-    
-    # Create temporary processed data for database schema
-    temp_processed_data <- process_survey_data(data, session_id, timing_data)
-    
     # Database operations with error handling
     tryCatch({
+      # Process data for the data table
+      temp_processed_data <- process_survey_data(data, session_id, timing_data)
+      
       # Create table if it doesn't exist
       db_ops$create_survey_data_table(survey_name, temp_processed_data)
       
       # Update table schema if needed and insert data
       db_ops$update_survey_data_table(survey_name, temp_processed_data)
-      
-      # Record data save completion time and calculate duration
-      rv$time_data_save <- Sys.time()
-      if (!is.null(rv$time_save_start)) {
-        timing_data$duration_save <- as.numeric(difftime(rv$time_data_save,
-                                                         rv$time_save_start,
-                                                         units = "secs"))
-        # Update the stored timing data
-        rv$timing_data <- timing_data
-        
-        # Add save duration to the data
-        if (is.list(data) && !is.data.frame(data)) {
-          data <- c(data, list(duration_save = timing_data$duration_save))
-        } else if (is.data.frame(data)) {
-          data$duration_save <- rep(timing_data$duration_save, nrow(data))
-        }
-      }
       
       # Process the final data with all timing information
       rv$display_data <- process_survey_data(data, session_id, timing_data)
