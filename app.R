@@ -64,7 +64,7 @@ ui <- fluidPage(
     # Survey container
     div(
       id = "surveyContainer",
-      surveyUI("survey", theme = "defaultV2")
+      surveyUI(theme = "defaultV2")
     ),
     
     # Survey data output
